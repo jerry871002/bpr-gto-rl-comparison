@@ -41,7 +41,7 @@ class TrainingOpponent:
                 elif self.type == 3:
                     return BOTTOM if y != int(self.env_height/4*3) else LEFT
                 elif self.type == 4:
-                    return BOTTOM if y != self.env_height - 1 else LEFT
+                    return BOTTOM if y != self.env_height-1 else LEFT
             # at the end column
             elif x == 0:
                 if self.type == 0:
@@ -53,7 +53,9 @@ class TrainingOpponent:
                 elif self.type == 3:
                     return TOP if y != int((2*self.env_height+self.env_goal_size)/4) else LEFT
                 elif self.type == 4:
-                    return TOP if y != (self.env_height + self.env_goal_size) / 2 else LEFT
+                    return TOP if y != (self.env_height+self.env_goal_size)/2-1 else LEFT
+            else:
+                raise ValueError(f'`x` has wrong value `{x}`')
         else:
             # without the ball, chase it
             return self.chase_ball(x_op, y_op, x, y)
@@ -81,7 +83,7 @@ class StationaryOpponent(TrainingOpponent):
     def __init__(self, env_width, env_height, env_goal_size, type=None):
         super().__init__(type, env_width, env_height, env_goal_size)
 
-    def adjust(done, reward, episode_num):
+    def adjust(self, done, reward, episode_num):
         pass
 
 
@@ -90,7 +92,7 @@ class RandomSwitchOpponent(TrainingOpponent):
         super().__init__(type, env_width, env_height, env_goal_size)
         self.episode_reset = episode_reset
 
-    def adjust(done, reward, episode_num):
+    def adjust(self, done, reward, episode_num):
         if episode_num % episode_reset == 0 and done:
             candidate = [type for type in range(5)].remove(self.type)
             self.type = random.choice(candidate)
@@ -100,7 +102,7 @@ class RLBasedOpponent(TrainingOpponent):
     def __init__(self, env_width, env_height, env_goal_size, type=None):
         super().__init__(type, env_width, env_height, env_goal_size)
 
-    def adjust(done, reward, episode_num):
+    def adjust(self, done, reward, episode_num):
         if reward < 0 and done:
             candidate = [type for type in range(5)].remove(self.type)
             self.type = random.choice(candidate)
