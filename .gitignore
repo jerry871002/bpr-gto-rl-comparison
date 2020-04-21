@@ -1,4 +1,13 @@
+# cache files
 __pycache__/
-.DS_Store
+*.pyc
+
+# jupyter noteboooks
 *.ipynb
 .ipynb_checkpoints/
+
+# file system related
+.DS_Store
+
+# IDE related
+.idea/
