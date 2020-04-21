@@ -4,6 +4,9 @@ import numpy as np
 from collections import deque
 from .sumtree import SumTree
 
+""" Original Code by @germain-hug: https://github.com/germain-hug/Deep-RL-Keras/blob/master/utils/memory_buffer.py
+"""
+
 class MemoryBuffer(object):
     """ Memory Buffer Helper class for Experience Replay
     using a double-ended queue or a Sum Tree (for PER)

@@ -7,6 +7,9 @@ from keras.models import Model
 from keras.optimizers import Adam
 from keras.layers import Input, Dense, Reshape, GaussianNoise, Flatten
 
+""" Modified from code by @germain-hug: https://github.com/germain-hug/Deep-RL-Keras/blob/master/DDPG/actor.py
+"""
+
 class Actor:
     """ Actor Network for the DDPG Algorithm
     """

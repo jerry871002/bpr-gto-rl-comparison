@@ -7,6 +7,9 @@ from keras.models import Model
 from keras.optimizers import Adam
 from keras.layers import Input, Dense, concatenate, Reshape, Lambda, Flatten
 
+""" Modified from code by @germain-hug: https://github.com/germain-hug/Deep-RL-Keras/blob/master/DDPG/critic.py
+"""
+
 class Critic:
     """ Critic for the MADDPG Algorithm, Q-Value function approximator
     """
@@ -20,7 +23,7 @@ class Critic:
         self.model = self.network()
         self.target_model = self.network()
         self.target_model.set_weights(self.model.get_weights())
-        
+
         self.model.compile(Adam(self.lr), 'mse')
         self.target_model.compile(Adam(self.lr), 'mse')
         # Function to compute Q-value gradients (Actor Optimization)

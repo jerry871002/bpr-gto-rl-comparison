@@ -1,6 +1,6 @@
 import numpy
 
-""" Original Code by @jaara: https://github.com/jaara/AI-blog/blob/master/SumTree.py
+""" Original code by @jaara: https://github.com/jaara/AI-blog/blob/master/SumTree.py
 """
 
 class SumTree:
