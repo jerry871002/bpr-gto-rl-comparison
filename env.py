@@ -70,10 +70,20 @@ class SoccerEnv():
             # switch ball possession
             self.ball_possession = int(not self.ball_possession)
         else:
+            # TODO: change action_valid to location_valid and only take location as parameters
+            # like this: self.action_valid(al_loc_, ar_loc_)
             if self.action_valid(self.agent_left.get_xy(), al_actual_action):
                 self.agent_left.set_xy(*al_loc_)
             if self.action_valid(self.agent_right.get_xy(), ar_actual_action):
                 self.agent_right.set_xy(*ar_loc_)
+
+        # TODO: fix the problem that agent left and agent right will be on the same location under following situation
+        #
+        # O
+        # X
+        #----- boundary
+        #
+        # O and X both choose action BOTTOM, but X does't move since it's not valid
 
         # state = (agent_left_x, agent_left_y, agent_right_x, agent_right_y, ball_possession)
         state = self.agent_left.get_xy() + self.agent_right.get_xy() + (self.ball_possession,)
