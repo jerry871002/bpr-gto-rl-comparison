@@ -1,4 +1,5 @@
 import math
+import random
 
 TOP = 0
 TOP_RIGHT = 1
@@ -11,7 +12,7 @@ TOP_LEFT = 7
 
 class TrainingOpponent:
     def __init__(self, type, env_width, env_height, env_goal_size):
-        self.type = type
+        self.type = type if type else random.randint(0, 4)
         # type 0 | type 1 | type 2 | type 3 | type 4
         #-------------------------------------------
         # xxxxx  | .....  | .....  | .....  | .....
@@ -29,11 +30,8 @@ class TrainingOpponent:
         if ball_possession == 1:
             # with the ball, try to goal
 
-            # in the middle columns
-            if 0 < x < self.env_width - 1:
-                return LEFT
-            # at the start column
-            elif x == self.env_width - 1:
+            # at the start column and in the middle columns
+            if 0 < x <= self.env_width - 1:
                 if self.type == 0:
                     return TOP if y != 0 else LEFT
                 elif self.type == 1:
@@ -77,3 +75,32 @@ class TrainingOpponent:
             return LEFT
         elif x > x_op and y > y_op:
             return TOP_LEFT
+
+
+class StationaryOpponent(TrainingOpponent):
+    def __init__(self, env_width, env_height, env_goal_size, type=None):
+        super().__init__(type, env_width, env_height, env_goal_size)
+
+    def adjust(done, reward, episode_num):
+        pass
+
+
+class RandomSwitchOpponent(TrainingOpponent):
+    def __init__(self, env_width, env_height, env_goal_size, type=None, episode_reset=6):
+        super().__init__(type, env_width, env_height, env_goal_size)
+        self.episode_reset = episode_reset
+
+    def adjust(done, reward, episode_num):
+        if episode_num % episode_reset == 0 and done:
+            candidate = [type for type in range(5)].remove(self.type)
+            self.type = random.choice(candidate)
+
+
+class RLBasedOpponent(TrainingOpponent):
+    def __init__(self, env_width, env_height, env_goal_size, type=None):
+        super().__init__(type, env_width, env_height, env_goal_size)
+
+    def adjust(done, reward, episode_num):
+        if reward < 0 and done:
+            candidate = [type for type in range(5)].remove(self.type)
+            self.type = random.choice(candidate)
