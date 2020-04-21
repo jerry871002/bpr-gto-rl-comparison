@@ -1,9 +1,10 @@
 import random
 import numpy as np
+from keras.utils import to_categorical as one_hot
 
 from env import SoccerEnv
 
-from agents.MADDPG import MADDPG
+from agents.MADDPG.maddpg import MADDPG
 from agents.common.training_opponent import StationaryOpponent, RandomSwitchOpponent, RLBasedOpponent
 
 # set environment
@@ -17,21 +18,27 @@ OP = StationaryOpponent(env_width=env.width, env_height=env.height, env_goal_siz
 EPISODES = 1000
 epsilon = 0.999
 
+# record training process
+reward_history = []
+
 for i in range(EPISODES):
     _, _, _, state, _ = env.reset()
 
     done = False
     while not done:
         env.show()
+        print()
 
         # agent 1 decides its action
         if random.random() > epsilon:
             actionME = np.argmax(ME.policy_action(state))
         else:
-            actionME = random.choices(np.arange(5), ME.policy_action(state))[0]
+            actionME = random.choices(np.arange(env.act_dim), ME.policy_action(state))[0]
 
         # agent 2 decides its action
         actionOP = OP.get_action(state)
+
+        print(actionME, actionOP)
 
         # perform actions on the environment
         done, reward_l, reward_r, state_, actions = env.step(actionME, actionOP)
@@ -42,9 +49,9 @@ for i in range(EPISODES):
         # Sample experience from buffer
         states, actions, op_actions, rewards, dones, new_states, _ = ME.sample_batch(64)
         # Predict target q-values using target networks
-        op_actions_new = [agent.policyOP(TYPEop, state[0], state[1]) \
+        op_actions_new = [OP.get_action(state) \
                           for state in new_states]
-        op_actions_new = one_hot(op_actions_new, num_classes=5)
+        op_actions_new = one_hot(op_actions_new, num_classes=env.act_dim)
 
         q_values = ME.critic.target_predict([
             new_states,
@@ -56,10 +63,22 @@ for i in range(EPISODES):
         # Train both networks on sampled batch, update target networks
         ME.update_models(
             states,
-            one_hot(actions, num_classes=5),
-            one_hot(op_actions, num_classes=5),
+            one_hot(actions, num_classes=env.act_dim),
+            one_hot(op_actions, num_classes=env.act_dim),
             critic_target
         )
 
         # training process of agent 2
-        OP.adjust()
+        OP.adjust(done, reward_r, i)
+
+        state = state_
+
+        if done:
+            reward_history.append(reward_l)
+            print(f'Episode {i}: {reward_l}')
+            print(f'epsilon: {epsilon}')
+            print(np.mean(reward_history[-100:]), file=open('moving_avg.txt', 'a'))
+            print('======================')
+            print()
+
+            epsilon *= 0.999
