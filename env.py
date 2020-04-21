@@ -48,6 +48,12 @@ class SoccerEnv():
         # 0 for left possession, 1 for right possession
         self.ball_possession = random.randint(0, 1)
 
+        # state = (agent_left_x, agent_left_y, agent_right_x, agent_right_y, ball_possession)
+        state = self.agent_left.get_xy() + self.agent_right.get_xy() + (self.ball_possession,)
+        actions = (None, None)
+
+        return False, 0, 0, state, actions
+
     def step(self, agent_left_action, agent_right_action):
         # add randomness into the environment
         al_actual_action = self.get_actual_action(agent_left_action)
@@ -151,7 +157,7 @@ class SoccerEnv():
 class Agent():
     def __init__(self, x=None, y=None):
         self.set_xy(x, y)
-        
+
     def move(self, action):
         moves = {
             TOP         : lambda: (self.x, self.y-1),
