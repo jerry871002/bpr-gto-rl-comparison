@@ -10,6 +10,7 @@ BOTTOM_LEFT = 5
 LEFT = 6
 TOP_LEFT = 7
 
+
 class TrainingOpponent:
     def __init__(self, type, env_width, env_height, env_goal_size):
         self.type = type if type else random.randint(0, 4)
@@ -33,29 +34,29 @@ class TrainingOpponent:
             # at the start column and in the middle columns
             if 0 < x <= self.env_width - 1:
                 if self.type == 0:
-                    return TOP if y != 0 else LEFT
+                    return self.move_to_row(y, 0)
                 elif self.type == 1:
-                    return TOP if y != int(self.env_height/4) else LEFT
+                    return self.move_to_row(y, int(self.env_height/4))
                 elif self.type == 2:
-                    return LEFT
+                    return self.move_to_row(y, int(self.env_height/2))
                 elif self.type == 3:
-                    return BOTTOM if y != int(self.env_height/4*3) else LEFT
+                    return self.move_to_row(int(self.env_height/4*3))
                 elif self.type == 4:
-                    return BOTTOM if y != self.env_height-1 else LEFT
+                    return self.move_to_row(self.env_height-1)
             # at the end column
             elif x == 0:
                 if self.type == 0:
-                    return BOTTOM if y != (self.env_height-self.env_goal_size)/2 else LEFT
+                    return self.move_to_row(y, (self.env_height-self.env_goal_size)/2)
                 elif self.type == 1:
-                    return BOTTOM if y != int((2*self.env_height-self.env_goal_size)/4) else LEFT
+                    return self.move_to_row(y, int((2*self.env_height-self.env_goal_size)/4))
                 elif self.type == 2:
-                    return LEFT
+                    return self.move_to_row(y, int(self.env_height/2))
                 elif self.type == 3:
-                    return TOP if y != int((2*self.env_height+self.env_goal_size)/4) else LEFT
+                    return self.move_to_row(y, int((2*self.env_height+self.env_goal_size)/4))
                 elif self.type == 4:
-                    return TOP if y != (self.env_height+self.env_goal_size)/2-1 else LEFT
+                    return self.move_to_row(y, (self.env_height+self.env_goal_size)/2-1)
             else:
-                raise ValueError(f'`x` has wrong value `{x}`')
+                raise ValueError(f'`x` has invalid value `{x}`')
         else:
             # without the ball, chase it
             return self.chase_ball(x_op, y_op, x, y)
@@ -77,6 +78,16 @@ class TrainingOpponent:
             return LEFT
         elif x > x_op and y > y_op:
             return TOP_LEFT
+        else:
+            raise ValueError(f'location invalid: op: ({x_op}, {y_op}), me: ({x}, {y})')
+
+    def move_to_row(self, y, target_row):
+        if y < target_row:
+            return BOTTOM
+        elif y > target_row:
+            return TOP
+        else:
+            return LEFT
 
 
 class StationaryOpponent(TrainingOpponent):
