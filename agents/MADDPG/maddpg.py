@@ -5,7 +5,7 @@ from .actor import Actor
 from .critic import Critic
 from ..utils.memory_buffer import MemoryBuffer
 
-""" Modified from code by @germain-hug https://github.com/germain-hug/Deep-RL-Keras/blob/master/DDPG/ddpg.py
+""" Modified from code by @germain-hug: https://github.com/germain-hug/Deep-RL-Keras/blob/master/DDPG/ddpg.py
 """
 
 class MADDPG:
