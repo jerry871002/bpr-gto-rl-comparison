@@ -33,7 +33,7 @@ class SoccerEnv():
         # 1 - prob_random: correct direction
         # 4 : 3 : 2 : 1 = prob of 45, 90, 125, 180 degrees away from correct direction
         # 19 = 4 + 3 + 2 + 1 + 2 + 3 + 4
-        # prob_distribution = [correct, 45, 90, 135, 180, 135, 90, 45]
+        # prob_distribution = [correct, 45, 90, 135, 180, -135, -90, -45]
         self.prob_distribution = [1-prob_random] + \
                                  [prob_random/19*i for i in [4, 3, 2, 1, 2, 3, 4]]
 
@@ -66,24 +66,22 @@ class SoccerEnv():
         al_loc_ = self.agent_left.move(al_actual_action)
         ar_loc_ = self.agent_right.move(ar_actual_action)
 
+        # check if next state locations are valid
+        # if not, next state location = original location
+        if not self.location_valid(al_loc_):
+            al_loc_ = self.agent_left.get_xy()
+        if not self.location_valid(ar_loc_):
+            ar_loc_ = self.agent_right.get_xy()
+
         if self.change_possesion(al_loc_, ar_loc_):
             # switch ball possession
             self.ball_possession = int(not self.ball_possession)
-        else:
-            # TODO: change action_valid to location_valid and only take location as parameters
-            # like this: self.action_valid(al_loc_, ar_loc_)
-            if self.action_valid(self.agent_left.get_xy(), al_actual_action):
-                self.agent_left.set_xy(*al_loc_)
-            if self.action_valid(self.agent_right.get_xy(), ar_actual_action):
-                self.agent_right.set_xy(*ar_loc_)
+            # if ball possession switched, next state locations = original locations
+            al_loc_ = self.agent_left.get_xy()
+            ar_loc_ = self.agent_right.get_xy()
 
-        # TODO: fix the problem that agent left and agent right will be on the same location under following situation
-        #
-        # O
-        # X
-        #----- boundary
-        #
-        # O and X both choose action BOTTOM, but X does't move since it's not valid
+        self.agent_left.set_xy(*al_loc_)
+        self.agent_right.set_xy(*ar_loc_)
 
         # state = (agent_left_x, agent_left_y, agent_right_x, agent_right_y, ball_possession)
         state = self.agent_left.get_xy() + self.agent_right.get_xy() + (self.ball_possession,)
@@ -91,11 +89,9 @@ class SoccerEnv():
 
         return done, reward_l, reward_r, state, actions
 
-    def action_valid(self, location, action):
-        # underscore (_) after variable means next state
-        x_, y_ = Agent(*location).move(action)
-
-        if 0 <= x_ < self.width and 0 <= y_ < self.height:
+    def location_valid(self, location):
+        x, y = location
+        if 0 <= x < self.width and 0 <= y < self.height:
             return True
         else:
             return False
@@ -170,11 +166,11 @@ class Agent():
 
     def move(self, action):
         moves = {
-            TOP         : lambda: (self.x, self.y-1),
+            TOP         : lambda: (self.x,   self.y-1),
             TOP_RIGHT   : lambda: (self.x+1, self.y-1),
             RIGHT       : lambda: (self.x+1, self.y),
             BOTTOM_RIGHT: lambda: (self.x+1, self.y+1),
-            BOTTOM      : lambda: (self.x, self.y+1),
+            BOTTOM      : lambda: (self.x,   self.y+1),
             BOTTOM_LEFT : lambda: (self.x-1, self.y+1),
             LEFT        : lambda: (self.x-1, self.y),
             TOP_LEFT    : lambda: (self.x-1, self.y-1)
