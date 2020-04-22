@@ -59,29 +59,37 @@ class SoccerEnv():
         al_actual_action = self.get_actual_action(agent_left_action)
         ar_actual_action = self.get_actual_action(agent_right_action)
 
+        if al_actual_action != agent_left_action:
+            print('randomness on agent_left')
+        if ar_actual_action != agent_right_action:
+            print('randomness on agent_right')
+
         # check if game is over and the rewards
         done, reward_l, reward_r = self.game_over(al_actual_action, ar_actual_action)
 
-        # underscore (_) after variable means next state
-        al_loc_ = self.agent_left.move(al_actual_action)
-        ar_loc_ = self.agent_right.move(ar_actual_action)
+        if not done:
+            # underscore (_) after variable means next state
+            al_loc_ = self.agent_left.move(al_actual_action)
+            ar_loc_ = self.agent_right.move(ar_actual_action)
 
-        # check if next state locations are valid
-        # if not, next state location = original location
-        if not self.location_valid(al_loc_):
-            al_loc_ = self.agent_left.get_xy()
-        if not self.location_valid(ar_loc_):
-            ar_loc_ = self.agent_right.get_xy()
+            # check if next state locations are valid
+            # if not, next state location = original location
+            if not self.location_valid(al_loc_):
+                al_loc_ = self.agent_left.get_xy()
+                reward_l = -1
+            if not self.location_valid(ar_loc_):
+                ar_loc_ = self.agent_right.get_xy()
+                reward_r = -1
 
-        if self.change_possesion(al_loc_, ar_loc_):
-            # switch ball possession
-            self.ball_possession = int(not self.ball_possession)
-            # if ball possession switched, next state locations = original locations
-            al_loc_ = self.agent_left.get_xy()
-            ar_loc_ = self.agent_right.get_xy()
+            if self.change_possesion(al_loc_, ar_loc_):
+                # switch ball possession
+                self.ball_possession = int(not self.ball_possession)
+                # if ball possession switched, next state locations = original locations
+                al_loc_ = self.agent_left.get_xy()
+                ar_loc_ = self.agent_right.get_xy()
 
-        self.agent_left.set_xy(*al_loc_)
-        self.agent_right.set_xy(*ar_loc_)
+            self.agent_left.set_xy(*al_loc_)
+            self.agent_right.set_xy(*ar_loc_)
 
         # state = (agent_left_x, agent_left_y, agent_right_x, agent_right_y, ball_possession)
         state = self.agent_left.get_xy() + self.agent_right.get_xy() + (self.ball_possession,)
