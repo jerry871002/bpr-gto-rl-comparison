@@ -40,9 +40,9 @@ class TrainingOpponent:
                 elif self.type == 2:
                     return self.move_to_row(y, int(self.env_height/2))
                 elif self.type == 3:
-                    return self.move_to_row(int(self.env_height/4*3))
+                    return self.move_to_row(y, int(self.env_height/4*3))
                 elif self.type == 4:
-                    return self.move_to_row(self.env_height-1)
+                    return self.move_to_row(y, self.env_height-1)
             # at the end column
             elif x == 0:
                 if self.type == 0:
