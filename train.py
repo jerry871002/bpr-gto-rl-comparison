@@ -15,8 +15,8 @@ ME = MADDPG(act_dim=env.act_dim, env_dim=env.env_dim)
 OP = StationaryOpponent(env_width=env.width, env_height=env.height, env_goal_size=env.goal_size)
 
 # parameters
-EPISODES = 1000
-epsilon = 0.999
+EPISODES = 10000
+epsilon = 0.999 # TODO: move epsilon into the MADDPG class
 
 # record training process
 reward_history = []
@@ -38,7 +38,17 @@ for i in range(EPISODES):
         # agent 2 decides its action
         actionOP = OP.get_action(state)
 
-        print(actionME, actionOP)
+        # log information
+        print('Probability for each action:')
+        print(ME.policy_action(state))
+        print('Critic value:')
+        print(ME.critic.target_predict([
+            np.expand_dims(state, axis=0),
+            np.expand_dims(one_hot(actionME, env.act_dim), axis=0),
+            np.expand_dims(one_hot(actionOP, env.act_dim), axis=0)
+        ]))
+        print('actionME:', actionME, 'actionOP:', actionOP)
+        print()
 
         # perform actions on the environment
         done, reward_l, reward_r, state_, actions = env.step(actionME, actionOP)
