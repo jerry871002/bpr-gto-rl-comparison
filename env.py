@@ -52,7 +52,7 @@ class SoccerEnv():
         state = self.agent_left.get_xy() + self.agent_right.get_xy() + (self.ball_possession,)
         actions = (None, None)
 
-        return False, 0, 0, state, actions
+        return state
 
     def step(self, agent_left_action, agent_right_action):
         # add randomness into the environment
@@ -76,14 +76,23 @@ class SoccerEnv():
             # if not, next state location = original location
             if not self.location_valid(al_loc_):
                 al_loc_ = self.agent_left.get_xy()
-                reward_l = -1
+                reward_l -= 1
             if not self.location_valid(ar_loc_):
                 ar_loc_ = self.agent_right.get_xy()
-                reward_r = -1
+                reward_r -= 1
 
             if self.change_possesion(al_loc_, ar_loc_):
                 # switch ball possession
                 self.ball_possession = int(not self.ball_possession)
+                # give reward to the agent who steal the ball
+                if self.ball_possession == 0:
+                    # left agent steal the ball
+                    reward_l += 2
+                    reward_r -= 2
+                elif self.ball_possession == 1:
+                    # right agent steal the ball
+                    reward_l -= 2
+                    reward_r += 2
                 # if ball possession switched, next state locations = original locations
                 al_loc_ = self.agent_left.get_xy()
                 ar_loc_ = self.agent_right.get_xy()

@@ -62,6 +62,12 @@ class TrainingOpponent:
             return self.chase_ball(x_op, y_op, x, y)
 
     def chase_ball(self, x_op, y_op, x, y):
+        if (x_op, y_op) == (x, y):
+            raise ValueError(f'location invalid: op: ({x_op}, {y_op}), me: ({x}, {y})')
+
+        if random.random() < 0.5:
+            return random.randint(0, 7)
+
         if x == x_op and y > y_op:
             return TOP
         elif x < x_op and y > y_op:
@@ -78,8 +84,6 @@ class TrainingOpponent:
             return LEFT
         elif x > x_op and y > y_op:
             return TOP_LEFT
-        else:
-            raise ValueError(f'location invalid: op: ({x_op}, {y_op}), me: ({x}, {y})')
 
     def move_to_row(self, y, target_row):
         if y < target_row:
