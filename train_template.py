@@ -21,7 +21,6 @@ EPISODES = 5000
 for i in range(EPISODES):
     state = env.reset()
 
-    reward = 0
     done = False
     while not done:
         env.show()
