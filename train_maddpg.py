@@ -40,8 +40,8 @@ def resume(state):
 env = SoccerEnv(width=5, height=5, goal_size=3)
 
 # set agents
-ME = MADDPG(act_dim=env.act_dim, env_dim=env.env_dim)
-OP = StationaryOpponent(env_width=env.width, env_height=env.height, env_goal_size=env.goal_size)
+agentME = MADDPG(act_dim=env.act_dim, env_dim=env.env_dim)
+agentOP = StationaryOpponent(env_width=env.width, env_height=env.height, env_goal_size=env.goal_size)
 
 # parameters
 EPISODES = 5000
@@ -61,20 +61,20 @@ for i in range(EPISODES):
 
         # agent 1 decides its action
         if random.random() > epsilon:
-            actionME = np.argmax(ME.policy_action(state))
-            # actionME = random.choices(np.arange(env.act_dim), ME.policy_action(normalize(state)))[0]
+            actionME = np.argmax(agentME.policy_action(state))
+            # actionME = random.choices(np.arange(env.act_dim), agentME.policy_action(normalize(state)))[0]
         else:
-            # actionME = random.choices(np.arange(env.act_dim), ME.policy_action(state))[0]
+            # actionME = random.choices(np.arange(env.act_dim), agentME.policy_action(state))[0]
             actionME = random.randint(0, env.act_dim-1)
 
         # agent 2 decides its action
-        actionOP = OP.get_action(state)
+        actionOP = agentOP.get_action(state)
 
         # log information
         print('Probability for each action:')
-        print(ME.policy_action(normalize(state)))
+        print(agentME.policy_action(normalize(state)))
         print('Critic value:')
-        print(ME.critic.target_predict([
+        print(agentME.critic.target_predict([
             np.expand_dims(normalize(state), axis=0),
             np.expand_dims(one_hot(actionME, env.act_dim), axis=0),
             np.expand_dims(one_hot(actionOP, env.act_dim), axis=0)
@@ -87,23 +87,23 @@ for i in range(EPISODES):
 
         # training process of agent 1
         # Add outputs to memory buffer
-        ME.memorize(normalize(state), actionME, actionOP, reward_l, done, normalize(state_))
+        agentME.memorize(normalize(state), actionME, actionOP, reward_l, done, normalize(state_))
         # Sample experience from buffer
-        states, actions, op_actions, rewards, dones, new_states, _ = ME.sample_batch(64)
+        states, actions, op_actions, rewards, dones, new_states, _ = agentME.sample_batch(64)
         # Predict target q-values using target networks
-        op_actions_new = [OP.get_action(resume(state)) \
+        op_actions_new = [agentOP.get_action(resume(state)) \
                           for state in new_states]
         op_actions_new = one_hot(op_actions_new, num_classes=env.act_dim)
 
-        q_values = ME.critic.target_predict([
+        q_values = agentME.critic.target_predict([
             new_states,
-            ME.actor.target_predict(new_states),
+            agentME.actor.target_predict(new_states),
             op_actions_new
         ])
         # Compute critic target
-        critic_target = ME.bellman(rewards, q_values, dones)
+        critic_target = agentME.bellman(rewards, q_values, dones)
         # Train both networks on sampled batch, update target networks
-        ME.update_models(
+        agentME.update_models(
             states,
             one_hot(actions, num_classes=env.act_dim),
             one_hot(op_actions, num_classes=env.act_dim),
@@ -111,7 +111,7 @@ for i in range(EPISODES):
         )
 
         # training process of agent 2
-        OP.adjust(done, reward_r, i)
+        agentOP.adjust(done, reward_r, i)
 
         state = state_
         reward += reward_l
