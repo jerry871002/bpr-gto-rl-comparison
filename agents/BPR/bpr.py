@@ -118,25 +118,33 @@ class BPR:
     def change_policy(self, MEx, MEy, ball_possession):
         if ball_possession==0: #ME possess ball
             self.attacking = True
-            self.policy_attack = np.argmax(self.belief_attack) 
-            print('attack belief =', self.belief_attack)
+            self.policy_attack = np.argmin(self.belief_attack) 
+            print('attack belief = ', self.belief_attack)
+            print('attack policy = ', self.policy_attack)
         elif ball_possession==1: #OP possess ball
             if MEx != 0 or MEy != int(self.env_height/2):
                 self.back_to_origin = False
             self.attacking = False
             self.policy_defense = np.argmax(self.belief_defense)
-            print('defend belief = ', self.belief_defense)
+            print('defense belief = ', self.belief_defense)
+            print('defense policy = ', self.policy_defense)
     
     #choose action according to policy
     def choose_action(self, state):
-        # not only the type of OP matters, but also its relative position!
         if self.attacking:
+            if state[0] == self.env_width-1 and state[1] == self.env_height-1:
+                return TOP_RIGHT
+            if state[0] == self.env_width-1 and state[1] == 0:
+                return BOTTOM_RIGHT
+            if state[0] >= state[2] or abs(state[1]-state[3]) >= 2:
+                return RIGHT
             if self.policy_attack == 0: # attack from up
-                return RIGHT
+                return self.to_target(state[1], state[3]-1)            
             elif self.policy_attack == 1: #attack from middle
-                return RIGHT
+                return self.to_target(state[1], state[3])
             elif self.policy_attack == 2: #attack from down
-                return RIGHT
+                # target = [state[2], state[3]+1]
+                return self.to_target(state[1], state[3]+1)
         # defending
         elif not self.attacking:
             #go back to origin first
@@ -164,6 +172,15 @@ class BPR:
                 return self.move_to_row(state[1], int(self.env_height/4*3))
             elif self.policy_defense == 4:
                 return self.move_to_row(state[1], self.env_height-1)
+    
+    def to_target(self, MEy, targety):
+        if MEy < targety:
+            return BOTTOM_RIGHT
+        if MEy == targety:
+            return RIGHT
+        if MEy > targety:
+            return TOP_RIGHT
+    
     def move_to_row(self, y, target_row):
         if y < target_row:
             return BOTTOM
