@@ -15,7 +15,7 @@ ME = MADDPG(act_dim=env.act_dim, env_dim=env.env_dim)
 OP = StationaryOpponent(env_width=env.width, env_height=env.height, env_goal_size=env.goal_size)
 
 # parameters
-EPISODES = 10000
+EPISODES = 10
 epsilon = 0.999 # TODO: move epsilon into the MADDPG class
 
 # record training process
@@ -28,7 +28,7 @@ for i in range(EPISODES):
     while not done:
         env.show()
         print()
-
+        input('')
         # agent 1 decides its action
         if random.random() > epsilon:
             actionME = np.argmax(ME.policy_action(state))
