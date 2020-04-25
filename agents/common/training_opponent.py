@@ -12,8 +12,8 @@ TOP_LEFT = 7
 
 
 class TrainingOpponent:
-    def __init__(self, type, env_width, env_height, env_goal_size):
-        self.type = type if type else random.randint(0, 4)
+    def __init__(self, type_attack, type_defense, env_width, env_height, env_goal_size, difficulty):
+        # attack
         # type 0 | type 1 | type 2 | type 3 | type 4
         #-------------------------------------------
         # xxxxx  | .....  | .....  | .....  | .....
@@ -21,69 +21,80 @@ class TrainingOpponent:
         # ....x  | ....x  | xxxxx  | ....x  | ....x
         # .....  | .....  | .....  | xxxxx  | x...x
         # .....  | .....  | .....  | .....  | xxxxx
+        self.type_attack = type_attack if type_attack else random.randint(0, 4)
+
+        # defense
+        # type 0: defense top
+        # type 1: defense middle
+        # type 2: defense bottom
+        self.type_defense = type_defense if type_defense else random.randint(0, 2)
+
         self.env_width = env_width
         self.env_height = env_height
         self.env_goal_size = env_goal_size
 
+        if not 0 <= difficulty <= 10:
+            raise ValueError('difficulty shold be between 0 and 10')
+        self.random_attack = difficulty / 20.
+        self.random_defense = 1. - difficulty / 10.
+
     def get_action(self, state):
         x_op, y_op, x, y, ball_possession = state
 
-        if ball_possession == 1:
-            # with the ball, try to goal
+        # random action
+        if (ball_possession == 1 and random.random() >= self.random_attack) or \
+            (ball_possession == 0 and random.random() >= self.random_defense):
+            print('random action on opponent')
+            return random.randint(0, 7)
 
+        # with the ball, attack
+        if ball_possession == 1:
             # at the start column and in the middle columns
             if 0 < x <= self.env_width - 1:
-                if self.type == 0:
+                if self.type_attack == 0:
                     return self.move_to_row(y, 0)
-                elif self.type == 1:
+                elif self.type_attack == 1:
                     return self.move_to_row(y, int(self.env_height/4))
-                elif self.type == 2:
+                elif self.type_attack == 2:
                     return self.move_to_row(y, int(self.env_height/2))
-                elif self.type == 3:
+                elif self.type_attack == 3:
                     return self.move_to_row(y, int(self.env_height/4*3))
-                elif self.type == 4:
+                elif self.type_attack == 4:
                     return self.move_to_row(y, self.env_height-1)
             # at the end column
             elif x == 0:
-                if self.type == 0:
+                if self.type_attack == 0:
                     return self.move_to_row(y, (self.env_height-self.env_goal_size)/2)
-                elif self.type == 1:
+                elif self.type_attack == 1:
                     return self.move_to_row(y, int((2*self.env_height-self.env_goal_size)/4))
-                elif self.type == 2:
+                elif self.type_attack == 2:
                     return self.move_to_row(y, int(self.env_height/2))
-                elif self.type == 3:
+                elif self.type_attack == 3:
                     return self.move_to_row(y, int((2*self.env_height+self.env_goal_size)/4))
-                elif self.type == 4:
+                elif self.type_attack == 4:
                     return self.move_to_row(y, (self.env_height+self.env_goal_size)/2-1)
             else:
                 raise ValueError(f'`x` has invalid value `{x}`')
+        # without the ball, defense
         else:
-            # without the ball, chase it
-            return self.chase_ball(x_op, y_op, x, y)
-
-    def chase_ball(self, x_op, y_op, x, y):
-        if (x_op, y_op) == (x, y):
-            raise ValueError(f'location invalid: op: ({x_op}, {y_op}), me: ({x}, {y})')
-
-        if random.random() < 0.5:
-            return random.randint(0, 7)
-
-        if x == x_op and y > y_op:
-            return TOP
-        elif x < x_op and y > y_op:
-            return TOP_RIGHT
-        elif x < x_op and y == y_op:
-            return RIGHT
-        elif x < x_op and y < y_op:
-            return BOTTOM_RIGHT
-        elif x == x_op and y < y_op:
-            return BOTTOM
-        elif x > x_op and y < y_op:
-            return BOTTOM_LEFT
-        elif x > x_op and y == y_op:
-            return LEFT
-        elif x > x_op and y > y_op:
-            return TOP_LEFT
+            if self.type_defense == 0:
+                target = (x_op+1, y_op-1)
+                if (x, y) != target:
+                    return self.move_to_location(x, y, x_op+1, y_op-1)
+                else:
+                    return self.move_to_location(x, y, x_op, y_op)
+            elif self.type_defense == 1:
+                target = (x_op+1, y_op)
+                if (x, y) != target:
+                    return self.move_to_location(x, y, x_op+1, y_op)
+                else:
+                    return self.move_to_location(x, y, x_op, y_op)
+            elif self.type_defense == 2:
+                target = (x_op+1, y_op+1)
+                if (x, y) != target:
+                    return self.move_to_location(x, y, x_op+1, y_op+1)
+                else:
+                    return self.move_to_location(x, y, x_op, y_op)
 
     def move_to_row(self, y, target_row):
         if y < target_row:
@@ -93,31 +104,66 @@ class TrainingOpponent:
         else:
             return LEFT
 
+    def move_to_location(self, x, y, x_target, y_target):
+        if (x, y) == (x_target, y_target):
+            raise ValueError(f'invalid move: ({x}, {y}) to target ({x_target}, {y_target})')
+
+        return self.direction(x, y, x_target, y_target)
+
+    def direction(self, x_dep, y_dep, x_dst, y_dst):
+        if x_dep == x_dst and y_dep > y_dst:
+            return TOP
+        elif x_dep < x_dst and y_dep > y_dst:
+            return TOP_RIGHT
+        elif x_dep < x_dst and y_dep == y_dst:
+            return RIGHT
+        elif x_dep < x_dst and y_dep < y_dst:
+            return BOTTOM_RIGHT
+        elif x_dep == x_dst and y_dep < y_dst:
+            return BOTTOM
+        elif x_dep > x_dst and y_dep < y_dst:
+            return BOTTOM_LEFT
+        elif x_dep > x_dst and y_dep == y_dst:
+            return LEFT
+        elif x_dep > x_dst and y_dep > y_dst:
+            return TOP_LEFT
+        else:
+            raise ValueError(f'No such direction! (x_dep, y_dep) = ({x_dep}, {y_dep}) (x_dst, y_dst) = ({x_dst}, {y_dst})')
+
 
 class StationaryOpponent(TrainingOpponent):
-    def __init__(self, env_width, env_height, env_goal_size, type=None):
-        super().__init__(type, env_width, env_height, env_goal_size)
+    def __init__(self, env_width, env_height, env_goal_size, type_attack=None, type_defense=None, difficulty=4):
+        super().__init__(type_attack, type_defense, env_width, env_height, env_goal_size, difficulty)
+        print('StationaryOpponent created')
+        print(f'type_attack: {self.type_attack}')
+        print(f'type_defense: {self.type_defense}')
 
     def adjust(self, done, reward, episode_num):
         pass
 
 
 class RandomSwitchOpponent(TrainingOpponent):
-    def __init__(self, env_width, env_height, env_goal_size, type=None, episode_reset=6):
-        super().__init__(type, env_width, env_height, env_goal_size)
+    def __init__(self, env_width, env_height, env_goal_size, type_attack=None, type_defense=None, difficulty=4, episode_reset=6):
+        super().__init__(type_attack, type_defense, env_width, env_height, env_goal_size, difficulty)
         self.episode_reset = episode_reset
+        print('RandomSwitchOpponent created')
+        print(f'initial type_attack: {self.type_attack}')
+        print(f'initial type_defense: {self.type_defense}')
 
     def adjust(self, done, reward, episode_num):
         if episode_num % episode_reset == 0 and done:
-            candidate = [type for type in range(5)].remove(self.type)
-            self.type = random.choice(candidate)
+            candidate = [type for type in range(5)].remove(self.type_attack)
+            self.type_attack = random.choice(candidate)
 
 
 class RLBasedOpponent(TrainingOpponent):
-    def __init__(self, env_width, env_height, env_goal_size, type=None):
-        super().__init__(type, env_width, env_height, env_goal_size)
+    def __init__(self, env_width, env_height, env_goal_size, type_attack=None, type_defense=None, difficulty=4):
+        super().__init__(type_attack, type_defense, env_width, env_height, env_goal_size, difficulty)
+        print('RLBasedOpponent created')
+        print(f'initial type_attack: {self.type_attack}')
+        print(f'initial type_defense: {self.type_defense}')
 
     def adjust(self, done, reward, episode_num):
         if reward < 0 and done:
-            candidate = [type for type in range(5)].remove(self.type)
-            self.type = random.choice(candidate)
+            candidate = [type for type in range(5)].remove(self.type_attack)
+            self.type_attack = random.choice(candidate)
