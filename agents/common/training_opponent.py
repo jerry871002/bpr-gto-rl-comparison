@@ -12,7 +12,7 @@ TOP_LEFT = 7
 
 
 class TrainingOpponent:
-    def __init__(self, type_attack, type_defense, env_width, env_height, env_goal_size, difficulty):
+    def __init__(self, type_attack, type_defense, env_width, env_height, env_goal_size, randomness):
         # attack
         # type 0 | type 1 | type 2 | type 3 | type 4
         #-------------------------------------------
@@ -33,10 +33,9 @@ class TrainingOpponent:
         self.env_height = env_height
         self.env_goal_size = env_goal_size
 
-        if not 0 <= difficulty <= 10:
-            raise ValueError('difficulty shold be between 0 and 10')
-        self.random_attack = difficulty / 20.
-        self.random_defense = 1. - difficulty / 10.
+        self.random_attack, self.random_defense = randomness
+        if not 0 <= self.random_attack <= 1 or 0 <= self.random_defense <= 1:
+            raise ValueError('randomness shold be between 0 and 10')
 
     def get_action(self, state):
         x_op, y_op, x, y, ball_possession = state
@@ -132,7 +131,7 @@ class TrainingOpponent:
 
 
 class StationaryOpponent(TrainingOpponent):
-    def __init__(self, env_width, env_height, env_goal_size, type_attack=None, type_defense=None, difficulty=4):
+    def __init__(self, env_width, env_height, env_goal_size, type_attack=None, type_defense=None, randomness=(0.1, 0.1)):
         super().__init__(type_attack, type_defense, env_width, env_height, env_goal_size, difficulty)
         print('StationaryOpponent created')
         print(f'type_attack: {self.type_attack}')
@@ -143,7 +142,7 @@ class StationaryOpponent(TrainingOpponent):
 
 
 class RandomSwitchOpponent(TrainingOpponent):
-    def __init__(self, env_width, env_height, env_goal_size, type_attack=None, type_defense=None, difficulty=4, episode_reset=6):
+    def __init__(self, env_width, env_height, env_goal_size, type_attack=None, type_defense=None, randomness=(0.1, 0.1), episode_reset=6):
         super().__init__(type_attack, type_defense, env_width, env_height, env_goal_size, difficulty)
         self.episode_reset = episode_reset
         print('RandomSwitchOpponent created')
@@ -158,7 +157,7 @@ class RandomSwitchOpponent(TrainingOpponent):
 
 
 class RLBasedOpponent(TrainingOpponent):
-    def __init__(self, env_width, env_height, env_goal_size, type_attack=None, type_defense=None, difficulty=4):
+    def __init__(self, env_width, env_height, env_goal_size, type_attack=None, type_defense=None, randomness=(0.1, 0.1)):
         super().__init__(type_attack, type_defense, env_width, env_height, env_goal_size, difficulty)
         print('RLBasedOpponent created')
         print(f'initial type_attack: {self.type_attack}')
