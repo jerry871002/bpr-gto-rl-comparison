@@ -13,7 +13,7 @@ env = SoccerEnv(width=5, height=5, goal_size=3)
 
 # set agents
 ME = BPR(env_width=env.width, env_height=env.height, env_goal_size=env.goal_size)
-OP = StationaryOpponent(env_width=env.width, env_height=env.height, env_goal_size=env.goal_size)
+OP = RandomSwitchOpponent(env_width=env.width, env_height=env.height, env_goal_size=env.goal_size)
 
 # parameters
 EPISODES = 10

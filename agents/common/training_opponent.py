@@ -42,8 +42,8 @@ class TrainingOpponent:
         x_op, y_op, x, y, ball_possession = state
 
         # random action
-        if (ball_possession == 1 and random.random() >= self.random_attack) or \
-            (ball_possession == 0 and random.random() >= self.random_defense):
+        if (ball_possession == 1 and random.random() < self.random_attack) or \
+            (ball_possession == 0 and random.random() < self.random_defense):
             print('random action on opponent')
             return random.randint(0, 7)
 
@@ -151,8 +151,9 @@ class RandomSwitchOpponent(TrainingOpponent):
         print(f'initial type_defense: {self.type_defense}')
 
     def adjust(self, done, reward, episode_num):
-        if episode_num % episode_reset == 0 and done:
-            candidate = [type for type in range(5)].remove(self.type_attack)
+        if episode_num % self.episode_reset == 0 and done:
+            candidate = [type for type in range(5)]
+            candidate.remove(self.type_attack)
             self.type_attack = random.choice(candidate)
 
 
@@ -165,5 +166,6 @@ class RLBasedOpponent(TrainingOpponent):
 
     def adjust(self, done, reward, episode_num):
         if reward < 0 and done:
-            candidate = [type for type in range(5)].remove(self.type_attack)
+            candidate = [type for type in range(5)]
+            candidate.remove(self.type_attack)
             self.type_attack = random.choice(candidate)

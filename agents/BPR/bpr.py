@@ -41,7 +41,7 @@ class BPR:
         if state[4] == 1: #right ball possession
             #likelihood is the prob distribution of OP type 0,1,2,3,4
             likelihood_defense = self.performance_model_defense(state[1], state[3], actionOP, prob_distribution)
-            print('&&&&',likelihood_defense)
+            # print('&&&&',likelihood_defense)
             self.belief_defense = self.belief_defense*likelihood_defense/np.sum(self.belief_defense*likelihood_defense)
         
     def performance_model_attack(self, MEy, OPy, actionOP, prob): #Me attack, OP defense
