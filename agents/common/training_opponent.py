@@ -76,24 +76,29 @@ class TrainingOpponent:
                 raise ValueError(f'`x` has invalid value `{x}`')
         # without the ball, defense
         else:
-            if self.type_defense == 0:
-                target = (x_op+1, y_op-1)
-                if (x, y) != target:
-                    return self.move_to_location(x, y, x_op+1, y_op-1)
-                else:
-                    return self.move_to_location(x, y, x_op, y_op)
-            elif self.type_defense == 1:
-                target = (x_op+1, y_op)
-                if (x, y) != target:
-                    return self.move_to_location(x, y, x_op+1, y_op)
-                else:
-                    return self.move_to_location(x, y, x_op, y_op)
-            elif self.type_defense == 2:
-                target = (x_op+1, y_op+1)
-                if (x, y) != target:
-                    return self.move_to_location(x, y, x_op+1, y_op+1)
-                else:
-                    return self.move_to_location(x, y, x_op, y_op)
+            # to far from the opponent
+            if abs(x - x_op) + abs(y - y_op) > 2:
+                return self.move_to_location(x, y, x_op+2, y_op)
+            # close to opponent, show policy
+            elif abs(x - x_op) + abs(y - y_op) <= 2:
+                if self.type_defense == 0:
+                    target = (x_op+1, y_op-1)
+                    if (x, y) != target:
+                        return self.move_to_location(x, y, x_op+1, y_op-1)
+                    else:
+                        return self.move_to_location(x, y, x_op, y_op)
+                elif self.type_defense == 1:
+                    target = (x_op+1, y_op)
+                    if (x, y) != target:
+                        return self.move_to_location(x, y, x_op+1, y_op)
+                    else:
+                        return self.move_to_location(x, y, x_op, y_op)
+                elif self.type_defense == 2:
+                    target = (x_op+1, y_op+1)
+                    if (x, y) != target:
+                        return self.move_to_location(x, y, x_op+1, y_op+1)
+                    else:
+                        return self.move_to_location(x, y, x_op, y_op)
 
     def move_to_row(self, y, target_row):
         if y < target_row:

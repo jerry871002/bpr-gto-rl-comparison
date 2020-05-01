@@ -35,7 +35,8 @@ class BPR:
         prob_distribution = [1-OP_prob_random] + [OP_prob_random/19*i for i in [4, 3, 2, 1, 2, 3, 4]]
         if state[4] == 0: #left ball possession
             #likelihood is the prob distribution of OP type 0,1,2
-            likelihood_attack = self.performance_model_attack(state[1], state[3], actionOP, prob_distribution)
+            likelihood_attack = self.performance_model_attack(state[0], state[1], state[2], state[3], actionOP, prob_distribution)
+            # print(likelihood_attack)
             self.belief_attack = self.belief_attack*likelihood_attack/np.sum(self.belief_attack*likelihood_attack)
             
         if state[4] == 1: #right ball possession
@@ -44,7 +45,7 @@ class BPR:
             # print('&&&&',likelihood_defense)
             self.belief_defense = self.belief_defense*likelihood_defense/np.sum(self.belief_defense*likelihood_defense)
         
-    def performance_model_attack(self, MEy, OPy, actionOP, prob): #Me attack, OP defense
+    def performance_model_attack(self, MEx, MEy, OPx, OPy, actionOP, prob): #Me attack, OP defense
         #performance[0,0,:] means the prob of doing each action when OPy>MEy and using type 0
         # prob = deque(prob)
         # performance = np.array([
@@ -69,11 +70,13 @@ class BPR:
         performance[2, 1, 0:l] = self.rotate(prob, 1)
         performance[2, 2, 0:l] = self.rotate(prob, 2)
         # print(performance)
-        
-        if OPy<MEy: return performance[0,:,actionOP]
-        elif OPy==MEy: return performance[1,:,actionOP]
-        elif OPy>MEy: return performance[2,:,actionOP]
-        # return 0
+        if OPx - MEx <= 2:
+            if OPy<MEy: return performance[0,:,actionOP]
+            elif OPy==MEy: return performance[1,:,actionOP]
+            elif OPy>MEy: return performance[2,:,actionOP]
+            # return 0
+        else:
+            return np.ones(3)/3
         
     def performance_model_defense(self, MEy, OPy, actionOP, prob): #Me defense, OP attack
         # prob = deque(prob)
@@ -131,36 +134,32 @@ class BPR:
     
     #choose action according to policy
     def choose_action(self, state):
+        MEx, MEy, OPx, OPy, possession = state
+        #attacking
         if self.attacking:
-            if state[0] == self.env_width-1 and state[1] == self.env_height-1:
+            # in front of goal
+            if MEx == self.env_width-1 and MEy == self.env_height-1:
                 return TOP_RIGHT
-            if state[0] == self.env_width-1 and state[1] == 0:
+            if MEx == self.env_width-1 and MEy == 0:
                 return BOTTOM_RIGHT
-            if state[0] >= state[2] or abs(state[1]-state[3]) >= 2:
-                return RIGHT
-            if self.policy_attack == 0: # attack from up
-                return self.to_target(state[1], state[3]-1)            
-            elif self.policy_attack == 1: #attack from middle
-                return self.to_target(state[1], state[3])
-            elif self.policy_attack == 2: #attack from down
-                # target = [state[2], state[3]+1]
-                return self.to_target(state[1], state[3]+1)
+            # close to opponent, show policy
+            if abs(MEx - OPx) + abs(MEy - OPy) <= 2 and MEx < OPx:
+                if self.policy_attack == 0: # attack from top
+                    return self.to_target(MEx, MEy, OPx, OPy-1)
+                if self.policy_attack == 1: # attack from middle
+                    return self.to_target(MEx, MEy, OPx, OPy)
+                if self.policy_attack == 2: # attack from bottom
+                    return self.to_target(MEx, MEy, OPx, OPy+1)
+            
+            return RIGHT
         # defending
         elif not self.attacking:
+            print('back to origin: ', self.back_to_origin)
             #go back to origin first
-            if state[0] == 0 and state[1] == int(self.env_height/2):
+            if MEx == 0 and MEy == int(self.env_height/2):
                 self.back_to_origin = True
             if not self.back_to_origin:
-                if state[0] != 0 and state[1] > int(self.env_height/2):
-                    return TOP_LEFT
-                if state[0] != 0 and state[1] < int(self.env_height/2):
-                    return BOTTOM_LEFT
-                if state[0] == 0 and state[1] > int(self.env_height/2):
-                    return TOP
-                if state[0] == 0 and state[1] < int(self.env_height/2):
-                    return BOTTOM
-                if state[0] != 0 and state[1] == int(self.env_height/2):
-                    return LEFT
+                return self.to_target(MEx, MEy, 0, int(self.env_height/2))
             # try to block OP
             if self.policy_defense == 0:
                 return self.move_to_row(state[1], 0)
@@ -173,13 +172,23 @@ class BPR:
             elif self.policy_defense == 4:
                 return self.move_to_row(state[1], self.env_height-1)
     
-    def to_target(self, MEy, targety):
-        if MEy < targety:
-            return BOTTOM_RIGHT
-        if MEy == targety:
-            return RIGHT
-        if MEy > targety:
+    def to_target(self, MEx, MEy, TARGETx, TARGETy):
+        if MEx > TARGETx and MEy > TARGETy:
+            return TOP_LEFT
+        if MEx > TARGETx and MEy < TARGETy:
+            return BOTTOM_LEFT
+        if MEx > TARGETx and MEy == TARGETy:
+            return LEFT
+        if MEx < TARGETx and MEy > TARGETy:
             return TOP_RIGHT
+        if MEx < TARGETx and MEy < TARGETy:
+            return BOTTOM_RIGHT
+        if MEx < TARGETx and MEy == TARGETy:
+            return RIGHT
+        if MEx == TARGETx and MEy > TARGETy:
+            return TOP
+        if MEx == TARGETx and MEy < TARGETy:
+            return BOTTOM
     
     def move_to_row(self, y, target_row):
         if y < target_row:

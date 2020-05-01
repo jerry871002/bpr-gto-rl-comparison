@@ -135,7 +135,7 @@ class SoccerEnv():
         return False, 0, 0
 
     def get_actual_action(self, action):
-        prob_distribution = self.prob_distribution[-action:] + self.prob_distribution[:-action]
+        prob_distribution = self.prob_distribution[-1*action:] + self.prob_distribution[:-1*action]
         return np.random.choice([i for i in range(8)], p=prob_distribution)
 
     def change_possesion(self, al_next_loc, ar_next_loc):
