@@ -132,7 +132,7 @@ class TrainingOpponent:
 
 class StationaryOpponent(TrainingOpponent):
     def __init__(self, env_width, env_height, env_goal_size, type_attack=None, type_defense=None, randomness=(0.1, 0.1)):
-        super().__init__(type_attack, type_defense, env_width, env_height, env_goal_size, difficulty)
+        super().__init__(type_attack, type_defense, env_width, env_height, env_goal_size, randomness)
         print('StationaryOpponent created')
         print(f'type_attack: {self.type_attack}')
         print(f'type_defense: {self.type_defense}')
@@ -143,7 +143,7 @@ class StationaryOpponent(TrainingOpponent):
 
 class RandomSwitchOpponent(TrainingOpponent):
     def __init__(self, env_width, env_height, env_goal_size, type_attack=None, type_defense=None, randomness=(0.1, 0.1), episode_reset=6):
-        super().__init__(type_attack, type_defense, env_width, env_height, env_goal_size, difficulty)
+        super().__init__(type_attack, type_defense, env_width, env_height, env_goal_size, randomness)
         self.episode_reset = episode_reset
         print('RandomSwitchOpponent created')
         print(f'initial type_attack: {self.type_attack}')
@@ -158,7 +158,7 @@ class RandomSwitchOpponent(TrainingOpponent):
 
 class RLBasedOpponent(TrainingOpponent):
     def __init__(self, env_width, env_height, env_goal_size, type_attack=None, type_defense=None, randomness=(0.1, 0.1)):
-        super().__init__(type_attack, type_defense, env_width, env_height, env_goal_size, difficulty)
+        super().__init__(type_attack, type_defense, env_width, env_height, env_goal_size, randomness)
         print('RLBasedOpponent created')
         print(f'initial type_attack: {self.type_attack}')
         print(f'initial type_defense: {self.type_defense}')
