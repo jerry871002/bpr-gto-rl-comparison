@@ -60,9 +60,9 @@ class SoccerEnv():
         ar_actual_action = self.get_actual_action(agent_right_action)
 
         if al_actual_action != agent_left_action:
-            print('randomness on agent_left')
+            print('env randomness on agent_left')
         if ar_actual_action != agent_right_action:
-            print('randomness on agent_right')
+            print('env randomness on agent_right')
 
         # check if game is over and the rewards
         done, reward_l, reward_r = self.game_over(al_actual_action, ar_actual_action)
