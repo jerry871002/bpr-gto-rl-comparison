@@ -6,5 +6,5 @@ save_non_project_files = False
 
 [main]
 version = 0.2.0
-recent_files = ['train_BPR.py', 'agents/BPR/bpr.py', 'agents/common/training_opponent.py', 'train_template.py']
+recent_files = ['train_BPR.py', 'agents/BPR/bpr.py', 'agents/common/training_opponent.py', 'train_template.py', 'env.py', 'train_maddpg.py']
 

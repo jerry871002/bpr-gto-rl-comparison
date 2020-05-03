@@ -121,16 +121,20 @@ class BPR:
     def change_policy(self, MEx, MEy, ball_possession):
         if ball_possession==0: #ME possess ball
             self.attacking = True
-            self.policy_attack = np.argmin(self.belief_attack) 
-            print('attack belief = ', self.belief_attack)
-            print('attack policy = ', self.policy_attack)
+            self.policy_attack = np.argmin(self.belief_attack)
+            if MEy == 0 and self.policy_attack == 0:
+                self.policy_attack = 1
+            if MEy == self.env_height and self.policy_attack == 3:
+                self.policy_attack = 1
+            # print('attack belief = ', self.belief_attack)
+            # print('attack policy = ', self.policy_attack)
         elif ball_possession==1: #OP possess ball
             if MEx != 0 or MEy != int(self.env_height/2):
                 self.back_to_origin = False
             self.attacking = False
             self.policy_defense = np.argmax(self.belief_defense)
-            print('defense belief = ', self.belief_defense)
-            print('defense policy = ', self.policy_defense)
+            # print('defense belief = ', self.belief_defense)
+            # print('defense policy = ', self.policy_defense)
     
     #choose action according to policy
     def choose_action(self, state):
@@ -143,18 +147,19 @@ class BPR:
             if MEx == self.env_width-1 and MEy == 0:
                 return BOTTOM_RIGHT
             # close to opponent, show policy
-            if abs(MEx - OPx) + abs(MEy - OPy) <= 2 and MEx < OPx:
+            if (abs(MEx - OPx) + abs(MEy - OPy) <= 2 and MEx < OPx):
                 if self.policy_attack == 0: # attack from top
                     return self.to_target(MEx, MEy, OPx, OPy-1)
                 if self.policy_attack == 1: # attack from middle
                     return self.to_target(MEx, MEy, OPx, OPy)
                 if self.policy_attack == 2: # attack from bottom
                     return self.to_target(MEx, MEy, OPx, OPy+1)
+            # or (MEx == OPx and MEy == OPy-1) or (MEx == OPx and MEy == OPy+1)
             
             return RIGHT
         # defending
         elif not self.attacking:
-            print('back to origin: ', self.back_to_origin)
+            # print('back to origin: ', self.back_to_origin)
             #go back to origin first
             if MEx == 0 and MEy == int(self.env_height/2):
                 self.back_to_origin = True
@@ -189,6 +194,7 @@ class BPR:
             return TOP
         if MEx == TARGETx and MEy < TARGETy:
             return BOTTOM
+        
     
     def move_to_row(self, y, target_row):
         if y < target_row:

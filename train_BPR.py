@@ -16,8 +16,8 @@ ME = BPR(env_width=env.width, env_height=env.height, env_goal_size=env.goal_size
 OP = RandomSwitchOpponent(env_width=env.width, env_height=env.height, env_goal_size=env.goal_size)
 
 # parameters
-EPISODES = 10
-
+EPISODES = 1000
+win = 0
 for i in range(EPISODES):
     state = env.reset()
     ball_possession_change = True
@@ -45,3 +45,6 @@ for i in range(EPISODES):
         ball_possession_change = not(state[4]==state_[4])
         
         state = state_
+    if done and reward_l > 10:
+        win+=1
+print('win rate: ', win/EPISODES)

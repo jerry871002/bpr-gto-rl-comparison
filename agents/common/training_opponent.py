@@ -90,7 +90,7 @@ class TrainingOpponent:
                 elif self.type_defense == 1:
                     target = (x_op+1, y_op)
                     if (x, y) != target:
-                        return self.move_to_location(x, y, x_op+1, y_op)
+                        return self.move_to_location(x, y, x_op, y_op)
                     else:
                         return self.move_to_location(x, y, x_op, y_op)
                 elif self.type_defense == 2:
@@ -155,7 +155,8 @@ class RandomSwitchOpponent(TrainingOpponent):
         print(f'initial type_defense: {self.type_defense}')
 
     def adjust(self, done, reward, episode_num):
-        if episode_num+1 % self.episode_reset == 0 and done:
+        print(episode_num)
+        if (episode_num+1) % self.episode_reset == 0 and done:
             candidate = [type for type in range(5)]
             candidate.remove(self.type_attack)
             self.type_attack = random.choice(candidate)
