@@ -31,7 +31,7 @@ class SoccerEnv():
 
         # probability distribution of actions
         # 1 - prob_random: correct direction
-        # 4 : 3 : 2 : 1 = prob of 45, 90, 125, 180 degrees away from correct direction
+        # 4 : 3 : 2 : 1 = prob of 45, 90, 135, 180 degrees away from correct direction
         # 19 = 4 + 3 + 2 + 1 + 2 + 3 + 4
         # prob_distribution = [correct, 45, 90, 135, 180, -135, -90, -45]
         self.prob_distribution = [1-prob_random] + \

@@ -11,6 +11,7 @@ __pycache__/
 
 # IDE related
 .idea/
+.spyproject/
 
 # log files
 *.txt

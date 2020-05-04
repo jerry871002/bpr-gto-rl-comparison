@@ -34,8 +34,8 @@ class TrainingOpponent:
         self.env_goal_size = env_goal_size
 
         self.random_attack, self.random_defense = randomness
-        if not 0 <= self.random_attack <= 1 or 0 <= self.random_defense <= 1:
-            raise ValueError('randomness shold be between 0 and 10')
+        if not (0 <= self.random_attack <= 1 and 0 <= self.random_defense <= 1):
+            raise ValueError('randomness should be between 0 and 1')
 
     def get_action(self, state):
         x_op, y_op, x, y, ball_possession = state
@@ -76,24 +76,29 @@ class TrainingOpponent:
                 raise ValueError(f'`x` has invalid value `{x}`')
         # without the ball, defense
         else:
-            if self.type_defense == 0:
-                target = (x_op+1, y_op-1)
-                if (x, y) != target:
-                    return self.move_to_location(x, y, x_op+1, y_op-1)
-                else:
-                    return self.move_to_location(x, y, x_op, y_op)
-            elif self.type_defense == 1:
-                target = (x_op+1, y_op)
-                if (x, y) != target:
-                    return self.move_to_location(x, y, x_op+1, y_op)
-                else:
-                    return self.move_to_location(x, y, x_op, y_op)
-            elif self.type_defense == 2:
-                target = (x_op+1, y_op+1)
-                if (x, y) != target:
-                    return self.move_to_location(x, y, x_op+1, y_op+1)
-                else:
-                    return self.move_to_location(x, y, x_op, y_op)
+            # too far from the opponent
+            if abs(x - x_op) + abs(y - y_op) > 2:
+                return self.move_to_location(x, y, x_op+2, y_op)
+            # close to opponent, show policy
+            else:
+                if self.type_defense == 0:
+                    target = (x_op+1, y_op-1)
+                    if (x, y) != target:
+                        return self.move_to_location(x, y, *target)
+                    else:
+                        return self.move_to_location(x, y, x_op, y_op)
+                elif self.type_defense == 1:
+                    target = (x_op, y_op)
+                    if (x, y) != target:
+                        return self.move_to_location(x, y, *target)
+                    else:
+                        return self.move_to_location(x, y, x_op, y_op)
+                elif self.type_defense == 2:
+                    target = (x_op+1, y_op+1)
+                    if (x, y) != target:
+                        return self.move_to_location(x, y, *target)
+                    else:
+                        return self.move_to_location(x, y, x_op, y_op)
 
     def move_to_row(self, y, target_row):
         if y < target_row:
@@ -142,7 +147,7 @@ class StationaryOpponent(TrainingOpponent):
 
 
 class RandomSwitchOpponent(TrainingOpponent):
-    def __init__(self, env_width, env_height, env_goal_size, type_attack=None, type_defense=None, randomness=(0.1, 0.1), episode_reset=6):
+    def __init__(self, env_width, env_height, env_goal_size, type_attack=None, type_defense=None, randomness=(0.1, 0.1), episode_reset=10):
         super().__init__(type_attack, type_defense, env_width, env_height, env_goal_size, randomness)
         self.episode_reset = episode_reset
         print('RandomSwitchOpponent created')
@@ -150,10 +155,17 @@ class RandomSwitchOpponent(TrainingOpponent):
         print(f'initial type_defense: {self.type_defense}')
 
     def adjust(self, done, reward, episode_num):
-        if episode_num % self.episode_reset == 0 and done:
+        print(episode_num)
+        if (episode_num + 1) % self.episode_reset == 0 and done:
             candidate = [type for type in range(5)]
             candidate.remove(self.type_attack)
             self.type_attack = random.choice(candidate)
+            print(f'OP type_attack switch to {self.type_attack}')
+            
+            candidate = [type for type in range(3)]
+            candidate.remove(self.type_defense)
+            self.type_defense = random.choice(candidate)
+            print(f'OP type_defense switch to {self.type_defense}')
 
 
 class RLBasedOpponent(TrainingOpponent):
@@ -168,3 +180,9 @@ class RLBasedOpponent(TrainingOpponent):
             candidate = [type for type in range(5)]
             candidate.remove(self.type_attack)
             self.type_attack = random.choice(candidate)
+            print(f'OP type_attack switch to {self.type_attack}')
+            
+            candidate = [type for type in range(3)]
+            candidate.remove(self.type_defense)
+            self.type_defense = random.choice(candidate)
+            print(f'OP type_defense switch to {self.type_defense}')
