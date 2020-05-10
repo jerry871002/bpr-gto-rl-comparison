@@ -9,11 +9,10 @@ from ..utils.memory_buffer import MemoryBuffer
 """
 
 class MADDPG:
-
     def __init__(self, act_dim, env_dim, buffer_size=20000, gamma=0.99, lr=0.00001, tau=0.1):
         """ Initialization
         """
-        # Environment and A2C parameters
+        # Environment and training parameters
         self.act_dim = act_dim
         self.env_dim = env_dim
         self.gamma = gamma
@@ -53,8 +52,6 @@ class MADDPG:
         # Train critic
         self.critic.train_on_batch(states, actions, op_actions, critic_target)
         # Q-Value under Current Policy
-        # actions = self.actor.model.predict(states)
-        # grads = self.critic.gradients(states, actions, op_actions)
         q_values = self.critic.target_predict([
             states,
             self.actor.target_predict(states),
