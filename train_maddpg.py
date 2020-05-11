@@ -80,13 +80,15 @@ for i in range(EPISODES):
 
         # agentL decides its action
         if random.random() > epsilon:
-            actionL = np.argmax(agentL.policy_action(stateL))
+            # actionL = np.argmax(agentL.policy_action(stateL))
+            actionL = random.choices(np.arange(env.act_dim), agentL.policy_action(stateL))[0]
         else:
             actionL = random.randint(0, env.act_dim-1)
 
         # agentR decides its action
         if random.random() > epsilon:
-            actionR = np.argmax(agentR.policy_action(stateR))
+            # actionR = np.argmax(agentR.policy_action(stateR))
+            actionR = random.choices(np.arange(env.act_dim), agentR.policy_action(stateL))[0]
         else:
             actionR = random.randint(0, env.act_dim-1)
 
@@ -142,7 +144,7 @@ for i in range(EPISODES):
             critic_target
         )
 
-        # training process of agent 2
+        # training process of agentR
         # Add outputs to memory buffer
         agentR.memorize(stateR, actionR, actionL, reward_r, done, stateR_)
         # Sample experience from buffer
