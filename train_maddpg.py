@@ -88,7 +88,7 @@ for i in range(EPISODES):
         # agentR decides its action
         if random.random() > epsilon:
             # actionR = np.argmax(agentR.policy_action(stateR))
-            actionR = random.choices(np.arange(env.act_dim), agentR.policy_action(stateL))[0]
+            actionR = random.choices(np.arange(env.act_dim), agentR.policy_action(stateR))[0]
         else:
             actionR = random.randint(0, env.act_dim-1)
 
