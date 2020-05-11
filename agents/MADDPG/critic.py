@@ -37,10 +37,23 @@ class Critic:
         state = Input((self.env_dim,))
         action = Input((self.act_dim,))
         op_action = Input((self.act_dim,))
-        x = Dense(128, activation='relu')(state)
-        x = concatenate([x, action, op_action])
+
+        # slice state
+        pos_me = Lambda(lambda x: x[:, 0:2])(state)
+        pos_op = Lambda(lambda x: x[:, 2:4])(state)
+        ball = Lambda(lambda x: x[:, 4:])(state)
+
+        # get features from each input
+        action_ = Dense(16, activation='relu')(action)
+        op_action_ = Dense(16, activation='relu')(op_action)
+        pos_me = Dense(16, activation='relu')(pos_me)
+        pos_op = Dense(16, activation='relu')(pos_op)
+        ball = Dense(16, activation='relu')(ball)
+
+        x = concatenate([action_, op_action_, pos_me, pos_op, ball])
         x = Dense(64, activation='relu')(x)
         output = Dense(1, activation='linear', kernel_initializer=RandomUniform())(x)
+
         return Model([state, action, op_action], output)
 
     def gradients(self, states, actions, op_actions):

@@ -5,7 +5,7 @@ import keras.backend as K
 from keras.initializers import RandomUniform
 from keras.models import Model
 from keras.optimizers import Adam
-from keras.layers import Input, Dense, Reshape, GaussianNoise, Flatten
+from keras.layers import Input, Dense, Reshape, GaussianNoise, Flatten, Lambda, concatenate
 
 """ Modified from code by @germain-hug: https://github.com/germain-hug/Deep-RL-Keras/blob/master/DDPG/actor.py
 """
@@ -30,7 +30,18 @@ class Actor:
         """
         input = Input((self.env_dim,))
         delta = Input((1,))
-        x = Dense(128, activation='relu')(input)
+
+        # slice input layer
+        pos_me = Lambda(lambda x: x[:, 0:2])(input)
+        pos_op = Lambda(lambda x: x[:, 2:4])(input)
+        ball = Lambda(lambda x: x[:, 4:])(input)
+
+        # get features from each input
+        pos_me = Dense(32, activation='relu')(pos_me)
+        pos_op = Dense(32, activation='relu')(pos_op)
+        ball = Dense(32, activation='relu')(ball)
+
+        x = concatenate([pos_me, pos_op, ball])
         x = Dense(64, activation='relu')(x)
         output = Dense(self.act_dim, activation='softmax', kernel_initializer=RandomUniform())(x)
 
