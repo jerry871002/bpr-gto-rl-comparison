@@ -36,12 +36,15 @@ class Actor:
         pos_op = Lambda(lambda x: x[:, 2:4])(input)
         ball = Lambda(lambda x: x[:, 4:])(input)
 
+        # combine ball with possition
+        pos_me = concatenate([pos_me, ball])
+        pos_op = concatenate([pos_op, ball])
+
         # get features from each input
         pos_me = Dense(32, activation='relu')(pos_me)
         pos_op = Dense(32, activation='relu')(pos_op)
-        ball = Dense(32, activation='relu')(ball)
 
-        x = concatenate([pos_me, pos_op, ball])
+        x = concatenate([pos_me, pos_op])
         x = Dense(64, activation='relu')(x)
         output = Dense(self.act_dim, activation='softmax', kernel_initializer=RandomUniform())(x)
 

@@ -43,14 +43,17 @@ class Critic:
         pos_op = Lambda(lambda x: x[:, 2:4])(state)
         ball = Lambda(lambda x: x[:, 4:])(state)
 
+        # combine ball with possition
+        pos_me = concatenate([pos_me, ball])
+        pos_op = concatenate([pos_op, ball])
+
         # get features from each input
         action_ = Dense(16, activation='relu')(action)
         op_action_ = Dense(16, activation='relu')(op_action)
         pos_me = Dense(16, activation='relu')(pos_me)
         pos_op = Dense(16, activation='relu')(pos_op)
-        ball = Dense(16, activation='relu')(ball)
 
-        x = concatenate([action_, op_action_, pos_me, pos_op, ball])
+        x = concatenate([action_, op_action_, pos_me, pos_op])
         x = Dense(64, activation='relu')(x)
         output = Dense(1, activation='linear', kernel_initializer=RandomUniform())(x)
 
