@@ -57,7 +57,7 @@ agentL = M3DDPG(act_dim=env.act_dim, env_dim=env.env_dim)
 agentR = M3DDPG(act_dim=env.act_dim, env_dim=env.env_dim)
 
 # parameters
-EPISODES = 5
+EPISODES = 5000
 epsilon = 0.999 # TODO: move epsilon into the MADDPG class
 
 # record training process
