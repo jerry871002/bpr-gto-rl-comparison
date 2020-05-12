@@ -16,7 +16,9 @@ stat.reset()
 
 for i in range(EPISODES):
     state = env.reset()
-    stat.set_initial_ball(state[4]) # this is essential!!!
+    # the following step is essential to identify
+    # who has the ball at the begining of the game
+    stat.set_initial_ball(state[4])
 
     rewardL = 0
     rewardR = 0
