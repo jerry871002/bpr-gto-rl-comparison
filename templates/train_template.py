@@ -1,11 +1,4 @@
-import sys
-import random
-import numpy as np
-from keras.utils import to_categorical as one_hot
-
 from env import SoccerEnv
-
-from agents.MADDPG.maddpg import MADDPG
 from agents.common.training_opponent import StationaryOpponent, RandomSwitchOpponent, RLBasedOpponent
 
 # set environment
@@ -36,7 +29,7 @@ for i in range(EPISODES):
         done, reward_l, reward_r, state_, actions = env.step(actionME, actionOP)
 
         # training process of agent 1
-
+        """ do some training here """
 
         # training process of agent 2
         agentOP.adjust(done, reward_r, i)
