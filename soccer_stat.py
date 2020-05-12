@@ -1,9 +1,10 @@
 import numpy as np
 
-L = 0
-R = 1
-W = 0
-WO = 1
+# define constant for better understanding
+L = 0 # agentL
+R = 1 # agentR
+W = 0 # with
+WO = 1 # without
 
 class SoccerStat:
     def __init__(self):
@@ -16,8 +17,8 @@ class SoccerStat:
         # -----------------------
         # L |         |
         # R |         |
-        self.win_history = []
         self.win_record = [[0, 0], [0, 0]]
+        self.win_history = []
         self.ball = None
 
     def set_initial_ball(self, ball):
