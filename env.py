@@ -15,9 +15,9 @@ class SoccerEnv():
         # check if the dimension is valid
         if width < 2:
             raise ValueError('`width` must be greater than 2')
-        elif not 0 < goal_size <= height:
+        if not 0 < goal_size <= height:
             raise ValueError('`goal_size` must be greater than 0 and smaller or equal to `height`')
-        elif (height - goal_size) % 2 != 0:
+        if (height - goal_size) % 2 != 0:
             raise ValueError('`height` and `goal_size` must both be odd or even')
 
         # set parameter of the environment
@@ -50,7 +50,6 @@ class SoccerEnv():
 
         # state = (agent_left_x, agent_left_y, agent_right_x, agent_right_y, ball_possession)
         state = self.agent_left.get_xy() + self.agent_right.get_xy() + (self.ball_possession,)
-        actions = (None, None)
 
         return state
 
