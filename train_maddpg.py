@@ -1,12 +1,13 @@
 import sys
 import random
+import pickle
 import numpy as np
 from keras.utils import to_categorical as one_hot
 
 from env import SoccerEnv
+from soccer_stat import SoccerStat
 
-from agents.MADDPG.maddpg import MADDPG
-from agents.common.training_opponent import StationaryOpponent, RandomSwitchOpponent, RLBasedOpponent
+from agents.MADDPG_v2.maddpg import MADDPG
 
 if len(sys.argv) != 2:
     print('Usage: python train.py <moving-avg-log-file>')
@@ -60,12 +61,12 @@ agentR = MADDPG(act_dim=env.act_dim, env_dim=env.env_dim)
 EPISODES = 5000
 epsilon = 0.999 # TODO: move epsilon into the MADDPG class
 
-# record training process
-rewardL_history = []
-rewardR_history = []
+# statistic
+stat = SoccerStat()
 
 for i in range(EPISODES):
     state = env.reset()
+    stat.set_initial_ball(state[4])
 
     # adjust the state for each agent
     state = normalize(state)
@@ -80,15 +81,13 @@ for i in range(EPISODES):
 
         # agentL decides its action
         if random.random() > epsilon:
-            # actionL = np.argmax(agentL.policy_action(stateL))
-            actionL = random.choices(np.arange(env.act_dim), agentL.policy_action(stateL))[0]
+            actionL = np.random.choice(env.act_dim, p=agentL.policy_action(stateL))
         else:
             actionL = random.randint(0, env.act_dim-1)
 
         # agentR decides its action
         if random.random() > epsilon:
-            # actionR = np.argmax(agentR.policy_action(stateR))
-            actionR = random.choices(np.arange(env.act_dim), agentR.policy_action(stateR))[0]
+            actionR = np.random.choice(env.act_dim, p=agentR.policy_action(stateR))
         else:
             actionR = random.randint(0, env.act_dim-1)
 
@@ -176,14 +175,21 @@ for i in range(EPISODES):
         rewardR += reward_r
 
         if done:
-            rewardL_history.append(rewardL)
-            rewardR_history.append(rewardR)
             print(f'Episode {i+1}: {rewardL} {rewardR}')
             print(f'epsilon: {epsilon}')
-            print(np.mean(rewardL_history[-100:]),
-                  np.mean(rewardR_history[-100:]),
-                  file=open(moving_avg_file, 'a'))
+
+            stat.add_stat(rewardL, rewardR)
+            print(*stat.get_moving_avg(), file=open(moving_avg_file, 'a'))
             print('======================')
             print()
 
             epsilon *= 0.999
+
+    # save trained model
+    if (i+1) % 500 == 0 or i == 0:
+        agentL.save_weights(f'models/maddpg/agentL_maddpg_{i+1}')
+        agentR.save_weights(f'models/maddpg/agentR_maddpg_{i+1}')
+
+# save training stats
+with open('stats/maddpg.pkl', 'wb') as output:
+    pickle.dump(stat, output)

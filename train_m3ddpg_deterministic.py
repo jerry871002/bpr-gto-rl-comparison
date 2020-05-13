@@ -81,13 +81,13 @@ for i in range(EPISODES):
 
         # agentL decides its action
         if random.random() > epsilon:
-            actionL = np.random.choice(env.act_dim, p=agentL.policy_action(stateL))
+            actionL = np.argmax(agentL.policy_action(stateL))
         else:
             actionL = random.randint(0, env.act_dim-1)
 
         # agentR decides its action
         if random.random() > epsilon:
-            actionR = np.random.choice(env.act_dim, p=agentR.policy_action(stateR))
+            actionR = np.argmax(agentR.policy_action(stateR))
         else:
             actionR = random.randint(0, env.act_dim-1)
 
@@ -199,9 +199,9 @@ for i in range(EPISODES):
 
     # save trained model
     if (i+1) % 500 == 0 or i == 0:
-        agentL.save_weights(f'models/m3ddpg/agentL_m3ddpg_{i+1}')
-        agentR.save_weights(f'models/m3ddpg/agentR_m3ddpg_{i+1}')
+        agentL.save_weights(f'models/m3ddpg_d/agentL_m3ddpg_d_{i+1}')
+        agentR.save_weights(f'models/m3ddpg_d/agentR_m3ddpg_d_{i+1}')
 
 # save training stats
-with open('stats/m3ddpg.pkl', 'wb') as output:
+with open('stats/m3ddpg_d.pkl', 'wb') as output:
     pickle.dump(stat, output)
