@@ -8,7 +8,6 @@ Created on Thu Apr 23 15:44:44 2020
 
 import numpy as np
 import random
-from collections import deque
 
 TOP = 0
 TOP_RIGHT = 1
@@ -21,7 +20,7 @@ TOP_LEFT = 7
 
 class BPR:
     def __init__(self, env_width, env_height, env_goal_size):
-        self.belief_attack = np.ones(3)/5
+        self.belief_attack = np.ones(3)/3
         self.belief_defense = np.ones(5)/5
         self.policy_attack = random.randint(0, 2)
         self.policy_defense = random.randint(0, 4)
@@ -32,29 +31,27 @@ class BPR:
         
                 
     def update_belief(self, state, actionOP, OP_prob_random=0.05):
+        MEx, MEy, OPx, OPy, possession = state
         prob_distribution = [1-OP_prob_random] + [OP_prob_random/19*i for i in [4, 3, 2, 1, 2, 3, 4]]
-        if state[4] == 0: #left ball possession
+        if possession == 0: #left ball possession
             #likelihood is the prob distribution of OP type 0,1,2
-            likelihood_attack = self.performance_model_attack(state[0], state[1], state[2], state[3], actionOP, prob_distribution)
-            # print(likelihood_attack)
+            likelihood_attack = self.performance_model_attack(MEx, MEy, OPx, OPy, actionOP, prob_distribution)
             self.belief_attack = self.belief_attack*likelihood_attack/np.sum(self.belief_attack*likelihood_attack)
+            self.belief_attack = self.belief_attack**0.9/np.sum(self.belief_attack**0.9)
+            # for i in range(len(self.belief_attack)):
+            #     if self.belief_attack[i] < 1e-5:
+            #         self.belief_attack[i] = 1e-5
             
-        if state[4] == 1: #right ball possession
+        if possession == 1: #right ball possession
             #likelihood is the prob distribution of OP type 0,1,2,3,4
-            likelihood_defense = self.performance_model_defense(state[1], state[3], actionOP, prob_distribution)
-            # print('&&&&',likelihood_defense)
+            likelihood_defense = self.performance_model_defense(MEx, MEy, OPx, OPy, actionOP, prob_distribution)
             self.belief_defense = self.belief_defense*likelihood_defense/np.sum(self.belief_defense*likelihood_defense)
+            self.belief_defense = self.belief_defense**0.9/np.sum(self.belief_defense**0.9)
+            # for i in range(len(self.belief_defense)):
+            #     if self.belief_defense[i] < 1e-10:
+            #         self.belief_defense[i] = 1e-10
         
     def performance_model_attack(self, MEx, MEy, OPx, OPy, actionOP, prob): #Me attack, OP defense
-        #performance[0,0,:] means the prob of doing each action when OPy>MEy and using type 0
-        # prob = deque(prob)
-        # performance = np.array([
-        #                        [
-        #                         [self.rotate(prob, 2), self.rotate(prob, 3), self.rotate(prob, 4)] #1D:OPy<MEy, 2D:each type, 3D:prob of each action
-        #                         [self.rotate(prob, 0), self.rotate(prob, 2), self.rotate(prob, 4)] #OPy==MEy
-        #                         [self.rotate(prob, 0), self.rotate(prob, 1), self.rotate(prob, 2)] #OPy>MEy
-        #                        ]
-        #                        ])
         l = len(prob)
         performance = np.zeros((3, 3, l))
         
@@ -78,15 +75,7 @@ class BPR:
         else:
             return np.ones(3)/3
         
-    def performance_model_defense(self, MEy, OPy, actionOP, prob): #Me defense, OP attack
-        # prob = deque(prob)
-        # performance = np.array([
-        #                        [
-        #                         [self.rotate(prob, 0), self.rotate(prob, 2), self.rotate(prob, 4), self.rotate(prob, 4), self.rotate(prob, 4)] #OPy<height/2
-        #                         [self.rotate(prob, 0), self.rotate(prob, 0), self.rotate(prob, 2), self.rotate(prob, 4), self.rotate(prob, 4)] #OPy==height/2
-        #                         [self.rotate(prob, 0), self.rotate(prob, 0), self.rotate(prob, 0), self.rotate(prob, 2), self.rotate(prob, 4)] #OPy>height/2
-        #                        ]            
-        #                       ])
+    def performance_model_defense(self, MEx, MEy, OPx, OPy, actionOP, prob): #Me defense, OP attack
         l = len(prob)
         performance = np.zeros((3, 5, l))
         
@@ -108,10 +97,10 @@ class BPR:
         performance[2, 3, 0:l] = self.rotate(prob, 2)
         performance[2, 4, 0:l] = self.rotate(prob, 4)
         # print(performance)
-        
-        if OPy==int(self.env_height/4): return performance[0,:,actionOP]
-        elif OPy==int(self.env_height/2): return performance[1,:,actionOP]
-        elif OPy==int(self.env_height/4*3): return performance[2,:,actionOP]
+        if OPx != 0 or OPx != 1:
+            if OPy==int(self.env_height/4): return performance[0,:,actionOP]
+            elif OPy==int(self.env_height/2): return performance[1,:,actionOP]
+            elif OPy==int(self.env_height/4*3): return performance[2,:,actionOP]
         return np.ones(5)/5
     
     def rotate(self, l, n):
@@ -133,7 +122,7 @@ class BPR:
                 self.back_to_origin = False
             self.attacking = False
             self.policy_defense = np.argmax(self.belief_defense)
-            # print('defense belief = ', self.belief_defense)
+            print('defense belief = ', self.belief_defense)
             # print('defense policy = ', self.policy_defense)
     
     #choose action according to policy
