@@ -15,3 +15,6 @@ __pycache__/
 
 # log files
 *.txt
+
+# trained models
+models/
