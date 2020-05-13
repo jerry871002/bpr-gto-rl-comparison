@@ -10,7 +10,7 @@ from agents.MADDPG_v2.maddpg import MADDPG
 from agents.common.training_opponent import StationaryOpponent, RandomSwitchOpponent, RLBasedOpponent
 from agents.utils.adjust_state import normalize, state_each
 
-if len(sys.argv) != 5:
+if len(sys.argv) != 4:
     print('Usage: python play_with_model.py <model-path> <episode> <deterministic>')
     sys.exit()
 else:
