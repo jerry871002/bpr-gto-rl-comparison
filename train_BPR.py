@@ -9,13 +9,13 @@ from agents.BPR.bpr import BPR
 from agents.common.training_opponent import StationaryOpponent, RandomSwitchOpponent, RLBasedOpponent
 
 # set environment
-env = SoccerEnv(width=3, height=5, goal_size=3)
+env = SoccerEnv(width=5, height=5, goal_size=3)
 
 # set agents
 ME = BPR(env_width=env.width, env_height=env.height, env_goal_size=env.goal_size)
-OP = RandomSwitchOpponent(env_width=env.width, env_height=env.height, env_goal_size=env.goal_size, episode_reset=5)
+# OP = RandomSwitchOpponent(env_width=env.width, env_height=env.height, env_goal_size=env.goal_size, episode_reset=10)
 # OP = StationaryOpponent(env_width=env.width, env_height=env.height, env_goal_size=env.goal_size)
-# OP = RLBasedOpponent(env_width=env.width, env_height=env.height, env_goal_size=env.goal_size)
+OP = RLBasedOpponent(env_width=env.width, env_height=env.height, env_goal_size=env.goal_size)
 
 # parameters
 EPISODES = 1000

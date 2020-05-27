@@ -9,7 +9,7 @@ from agents.BPR_3_attack_3_defense.bpr_3_3 import BPR_3_3
 from agents.BPR_3_attack_3_defense.bpr_op_3_3 import BPR_OP_3_3
 
 # set environment
-env = SoccerEnv(width=3, height=5, goal_size=3)
+env = SoccerEnv(width=5, height=5, goal_size=3)
 
 # set agents
 agentME = BPR_3_3(env_width=env.width, env_height=env.height, env_goal_size=env.goal_size)
