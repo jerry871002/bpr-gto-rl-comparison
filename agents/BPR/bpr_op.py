@@ -116,13 +116,13 @@ class BPR_OP:
                 self.policy_defense = 1
             if MEy == self.env_height and self.policy_defense == 3:
                 self.policy_defense = 1
-            print('defense belief = ', self.belief_defense)
-            print('defense policy = ', self.policy_defense)
+            # print('defense belief = ', self.belief_defense)
+            # print('defense policy = ', self.policy_defense)
         elif ball_possession==1: #agent right possess ball
             self.attacking = True
             self.policy_attack = np.argmin(self.belief_attack)
-            print('attack belief = ', self.belief_attack)
-            print('attack policy = ', self.policy_attack)
+            # print('attack belief = ', self.belief_attack)
+            # print('attack policy = ', self.policy_attack)
     
     #choose action according to policy
     def choose_action(self, state):

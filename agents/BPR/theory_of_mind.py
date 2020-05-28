@@ -30,19 +30,23 @@ class TheoryOfMind:
         self.env_height = env_height
         self.attacking = True
         self.back_to_origin = True
-        self.confidence = 0.3
-        self.adjustment_rate = 0.7
-        self.winrate_threshold = 0.7
+        self.confidence = 0.5
+        self.adjustment_rate = 0.1
+        self.winrate_threshold = 0.3
         self.indicator_value = 0
         
     def update_confidence(self, current_win_rate, past_win_rate):
+        self.indicator(current_win_rate)
         if current_win_rate >= past_win_rate:
-            return ((1-self.adjustment_rate) * self.confidence + self.adjustment_rate) * self.indicator_value
+            print('winning')
+            self.confidence = ((1-self.adjustment_rate) * self.confidence + self.adjustment_rate) * self.indicator_value
         elif self.winrate_threshold < current_win_rate < past_win_rate:
+            print('average')
             temp = math.log(current_win_rate, 10)/math.log(current_win_rate-self.winrate_threshold, 10)
-            return temp * self.confidence * self.indicator_value
+            self.confidence = temp * self.confidence * self.indicator_value
         else:
-            return self.adjustment_rate * self.indicator_value
+            print('losing')
+            self.confidence = self.adjustment_rate * self.indicator_value
         
     def indicator(self, win_rate):
         if win_rate <= self.winrate_threshold and self.indicator_value == 0:
@@ -197,17 +201,17 @@ class TheoryOfMind:
     # if ball possession change -> change policy    
     def change_policy(self, leftx, lefty, ball_possession):
         if ball_possession == 0: #ME possess ball
+            self.attacking = True
             first_order_policy = np.argmin(self.first_belief_attack)
             integrate_attack = np.empty(3)
             for i in range(3):
-                if first_order_policy == i:
+                if first_order_policy != i:
                     integrate_attack[i] = (1-self.confidence) * self.zero_belief_attack[i] + self.confidence
                 else:
                     integrate_attack[i] = (1-self.confidence) * self.zero_belief_attack[i]
+                    
+            self.policy_attack = np.argmin(integrate_attack)
             
-            
-            
-            self.attacking = True
             if lefty == 0 and self.policy_attack == 0:
                 self.policy_attack = 1
             if lefty == self.env_height and self.policy_attack == 3:
@@ -218,8 +222,16 @@ class TheoryOfMind:
             if lefty != 0 or lefty != int(self.env_height/2):
                 self.back_to_origin = False
             self.attacking = False
-            self.policy_defense = np.argmax(self.belief_defense)
-            print('defense belief = ', self.belief_defense)
+            first_order_policy = np.argmax(self.first_belief_defense)
+            integrate_defense = np.empty(5)
+            for i in range(5):
+                if first_order_policy == i:
+                    integrate_defense[i] = (1-self.confidence) * self.zero_belief_defense[i] + self.confidence
+                else:
+                    integrate_defense[i] = (1-self.confidence) * self.zero_belief_defense[i]
+            
+            self.policy_defense = np.argmax(integrate_defense)
+            # print('defense belief = ', self.belief_defense)
             # print('defense policy = ', self.policy_defense)
     
     #choose action according to policy
