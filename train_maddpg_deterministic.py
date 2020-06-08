@@ -7,7 +7,7 @@ from keras.utils import to_categorical as one_hot
 from env import SoccerEnv
 from soccer_stat import SoccerStat
 
-from agents.M3DDPG.m3ddpg import M3DDPG
+from agents.MADDPG_v2.maddpg import MADDPG
 
 if len(sys.argv) != 2:
     print('Usage: python train.py <moving-avg-log-file>')
@@ -54,8 +54,8 @@ def state_R2L(stateR):
 env = SoccerEnv(width=5, height=5, goal_size=3)
 
 # set agents
-agentL = M3DDPG(act_dim=env.act_dim, env_dim=env.env_dim)
-agentR = M3DDPG(act_dim=env.act_dim, env_dim=env.env_dim)
+agentL = MADDPG(act_dim=env.act_dim, env_dim=env.env_dim)
+agentR = MADDPG(act_dim=env.act_dim, env_dim=env.env_dim)
 
 # parameters
 EPISODES = 5000
@@ -81,13 +81,13 @@ for i in range(EPISODES):
 
         # agentL decides its action
         if random.random() > epsilon:
-            actionL = np.random.choice(env.act_dim, p=agentL.policy_action(stateL))
+            actionL = np.argmax(agentL.policy_action(stateL))
         else:
             actionL = random.randint(0, env.act_dim-1)
 
         # agentR decides its action
         if random.random() > epsilon:
-            actionR = np.random.choice(env.act_dim, p=agentR.policy_action(stateR))
+            actionR = np.argmax(agentR.policy_action(stateR))
         else:
             actionR = random.randint(0, env.act_dim-1)
 
@@ -123,22 +123,16 @@ for i in range(EPISODES):
         agentL.memorize(stateL, actionL, actionR, reward_l, done, stateL_)
         # Sample experience from buffer
         states, actions, op_actions, rewards, dones, new_states, _ = agentL.sample_batch(64)
-        # Predict target q-values using target networks with minimax
-        q_values = []
-        for state in new_states:
-            action = agentL.actor.target_predict(np.expand_dims(state, axis=0))
-            min_q_value = float('inf')
-            for op_action in range(env.act_dim):
-                op_action = one_hot(op_action, num_classes=env.act_dim)
-                q_value = agentL.critic.target_predict([
-                    np.expand_dims(state, axis=0),
-                    action,
-                    np.expand_dims(op_action, axis=0)
-                ])[0]
-                if q_value < min_q_value:
-                    min_q_value = q_value
-            q_values.append(min_q_value)
-        q_values = np.array(q_values)
+        # Predict target q-values using target networks
+        op_actions_new = [np.argmax(agentR.policy_action(state_L2R(state))) \
+                          for state in new_states]
+        op_actions_new = one_hot(op_actions_new, num_classes=env.act_dim)
+
+        q_values = agentL.critic.target_predict([
+            new_states,
+            agentL.actor.target_predict(new_states),
+            op_actions_new
+        ])
         # Compute critic target
         critic_target = agentL.bellman(rewards, q_values, dones)
         # Train both networks on sampled batch, update target networks
@@ -154,22 +148,16 @@ for i in range(EPISODES):
         agentR.memorize(stateR, actionR, actionL, reward_r, done, stateR_)
         # Sample experience from buffer
         states, actions, op_actions, rewards, dones, new_states, _ = agentR.sample_batch(64)
-        # Predict target q-values using target networks with minimax
-        q_values = []
-        for state in new_states:
-            action = agentR.actor.target_predict(np.expand_dims(state, axis=0))
-            min_q_value = float('inf')
-            for op_action in range(env.act_dim):
-                op_action = one_hot(op_action, num_classes=env.act_dim)
-                q_value = agentR.critic.target_predict([
-                    np.expand_dims(state, axis=0),
-                    action,
-                    np.expand_dims(op_action, axis=0)
-                ])[0]
-                if q_value < min_q_value:
-                    min_q_value = q_value
-            q_values.append(min_q_value)
-        q_values = np.array(q_values)
+        # Predict target q-values using target networks
+        op_actions_new = [np.argmax(agentL.policy_action(state_R2L(state))) \
+                          for state in new_states]
+        op_actions_new = one_hot(op_actions_new, num_classes=env.act_dim)
+
+        q_values = agentR.critic.target_predict([
+            new_states,
+            agentR.actor.target_predict(new_states),
+            op_actions_new
+        ])
         # Compute critic target
         critic_target = agentR.bellman(rewards, q_values, dones)
         # Train both networks on sampled batch, update target networks
@@ -199,9 +187,8 @@ for i in range(EPISODES):
 
     # save trained model
     if (i+1) % 500 == 0 or i == 0:
-        agentL.save_weights(f'models/m3ddpg/agentL_m3ddpg_{i+1}')
-        agentR.save_weights(f'models/m3ddpg/agentR_m3ddpg_{i+1}')
+        agentL.save_weights(f'models/maddpg_d/agentL_maddpg_{i+1}')
+        agentR.save_weights(f'models/maddpg_d/agentR_maddpg_{i+1}')
 
-# save training stats
-with open('stats/m3ddpg.pkl', 'wb') as output:
+with open('stats/maddpg_d.pkl', 'wb') as output:
     pickle.dump(stat, output)
