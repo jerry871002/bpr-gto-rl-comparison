@@ -20,3 +20,4 @@ log_files/
 
 # trained models
 models/
+*.pkl

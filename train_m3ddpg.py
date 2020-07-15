@@ -7,48 +7,21 @@ from keras.utils import to_categorical as one_hot
 from env import SoccerEnv
 from soccer_stat import SoccerStat
 
-from agents.M3DDPG.m3ddpg import M3DDPG
+from agents.utils.adjust_state import normalize, state_each, state_L2R, state_R2L
 
-if len(sys.argv) != 2:
-    print('Usage: python train.py <moving-avg-log-file>')
+if len(sys.argv) != 3:
+    print('Usage: python train.py <m3dddpg-version> <moving-avg-log-file>')
     sys.exit()
 else:
-    moving_avg_file = sys.argv[1]
+    moving_avg_file = sys.argv[2]
 
-def normalize(state):
-    x1, y1, x2, y2, ball = state
-
-    w_norm = env.width - 1
-    h_norm = env.height - 1
-
-    x1 = x1 / w_norm
-    x2 = x2 / w_norm
-    y1 = y1 / h_norm
-    y2 = y2 / h_norm
-
-    return (x1, y1, x2, y2, ball)
-
-def state_each(state):
-    x1, y1, x2, y2, ball = state
-
-    if ball == 0:
-        stateL = (x1, y1, x2, y2, 1)
-        stateR = (x2, y2, x1, y1, 0)
-    elif ball == 1:
-        stateL = (x1, y1, x2, y2, 0)
-        stateR = (x2, y2, x1, y1, 1)
-
-    return stateL, stateR
-
-def state_L2R(stateL):
-    x1, y1, x2, y2, ball = stateL
-    ball = int(not ball)
-    return (x2, y2, x1, y1, ball)
-
-def state_R2L(stateR):
-    x2, y2, x1, y1, ball = stateR
-    ball = int(not ball)
-    return (x1, y1, x2, y2, ball)
+if sys.argv[1] == 'v0':
+    from agents.M3DDPG_v0.m3ddpg import M3DDPG
+elif sys.argv[1] == 'v1':
+    from agents.M3DDPG_v1.m3ddpg import M3DDPG
+else:
+    print('Invalid M3DDPG version')
+    sys.exit()
 
 # set environment
 env = SoccerEnv(width=5, height=5, goal_size=3)
@@ -58,7 +31,7 @@ agentL = M3DDPG(act_dim=env.act_dim, env_dim=env.env_dim)
 agentR = M3DDPG(act_dim=env.act_dim, env_dim=env.env_dim)
 
 # parameters
-EPISODES = 5000
+EPISODES = 10000
 epsilon = 0.999 # TODO: move epsilon into the MADDPG class
 
 # statistic
