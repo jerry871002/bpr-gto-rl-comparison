@@ -15,6 +15,7 @@ __pycache__/
 .spyproject/
 
 # log files
+log_files/
 *.txt
 
 # trained models
