@@ -1,5 +1,4 @@
 import numpy as np
-import tensorflow as tf
 import keras.backend as K
 
 from keras.initializers import RandomUniform
@@ -46,6 +45,7 @@ class Actor:
 
         x = concatenate([pos_me, pos_op])
         x = Dense(64, activation='relu')(x)
+        x = GaussianNoise(0.01)(x)
         output = Dense(self.act_dim, activation='softmax', kernel_initializer=RandomUniform())(x)
 
         return Model(input, output), Model(input=[input, delta], output=output)
