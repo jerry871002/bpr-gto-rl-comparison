@@ -1,8 +1,8 @@
-def normalize(env, state):
+def normalize(state, width=5, height=5):
     x1, y1, x2, y2, ball = state
 
-    w_norm = env.width - 1
-    h_norm = env.height - 1
+    w_norm = width - 1
+    h_norm = height - 1
 
     x1 = x1 / w_norm
     x2 = x2 / w_norm

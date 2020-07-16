@@ -41,7 +41,7 @@ for i in range(EPISODES):
     state = env.reset()
     stat.set_initial_ball(state[4])
 
-    stateL, stateR = state_each(normalize(env, state)) # for MADDPG agent
+    stateL, stateR = state_each(normalize(state)) # for MADDPG agent
 
     rewardL = 0
     rewardR = 0
@@ -77,7 +77,7 @@ for i in range(EPISODES):
         agentR.adjust(done, reward_r, i)
 
         state = state_
-        stateL, stateR = state_each(normalize(env, state))
+        stateL, stateR = state_each(normalize(state))
 
         rewardL += reward_l
         rewardR += reward_r
