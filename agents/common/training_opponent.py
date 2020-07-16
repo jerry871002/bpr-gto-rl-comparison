@@ -147,7 +147,7 @@ class StationaryOpponent(TrainingOpponent):
 
 
 class RandomSwitchOpponent(TrainingOpponent):
-    def __init__(self, env_width, env_height, env_goal_size, type_attack=None, type_defense=None, randomness=(0.1, 0.1), episode_reset=10):
+    def __init__(self, env_width, env_height, env_goal_size, type_attack=None, type_defense=None, randomness=(0.1, 0.1), episode_reset=5):
         super().__init__(type_attack, type_defense, env_width, env_height, env_goal_size, randomness)
         self.episode_reset = episode_reset
         print('RandomSwitchOpponent created')
