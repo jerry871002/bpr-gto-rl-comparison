@@ -77,31 +77,49 @@ class BPR_OP:
         
     def performance_model_attack(self, MEx, MEy, OPx, OPy, actionOP, prob): #Me defense, OP attack
         l = len(prob)
-        performance = np.zeros((3, 5, l))
+        performance = np.zeros((5, 5, l))
         
-        performance[0, 0, 0:l] = self.rotate(prob, 0)
-        performance[0, 1, 0:l] = self.rotate(prob, -2)
+        performance[0, 0, 0:l] = self.rotate(prob, -2)
+        performance[0, 1, 0:l] = self.rotate(prob, 4)
         performance[0, 2, 0:l] = self.rotate(prob, 4)
         performance[0, 3, 0:l] = self.rotate(prob, 4)
         performance[0, 4, 0:l] = self.rotate(prob, 4)
         
         performance[1, 0, 0:l] = self.rotate(prob, 0)
-        performance[1, 1, 0:l] = self.rotate(prob, 0)
-        performance[1, 2, 0:l] = self.rotate(prob, -2)
+        performance[1, 1, 0:l] = self.rotate(prob, -2)
+        performance[1, 2, 0:l] = self.rotate(prob, 4)
         performance[1, 3, 0:l] = self.rotate(prob, 4)
         performance[1, 4, 0:l] = self.rotate(prob, 4)
         
         performance[2, 0, 0:l] = self.rotate(prob, 0)
         performance[2, 1, 0:l] = self.rotate(prob, 0)
-        performance[2, 2, 0:l] = self.rotate(prob, 0)
-        performance[2, 3, 0:l] = self.rotate(prob, -2)
+        performance[2, 2, 0:l] = self.rotate(prob, -2)
+        performance[2, 3, 0:l] = self.rotate(prob, 4)
         performance[2, 4, 0:l] = self.rotate(prob, 4)
+        
+        performance[3, 0, 0:l] = self.rotate(prob, 0)
+        performance[3, 1, 0:l] = self.rotate(prob, 0)
+        performance[3, 2, 0:l] = self.rotate(prob, 0)
+        performance[3, 3, 0:l] = self.rotate(prob, -2)
+        performance[3, 4, 0:l] = self.rotate(prob, 4)
+        
+        performance[4, 0, 0:l] = self.rotate(prob, 0)
+        performance[4, 1, 0:l] = self.rotate(prob, 0)
+        performance[4, 2, 0:l] = self.rotate(prob, 0)
+        performance[4, 3, 0:l] = self.rotate(prob, 0)
+        performance[4, 4, 0:l] = self.rotate(prob, -2)
         # print(performance)
         # performance = np.negative(performance)
-        if OPx != 0 or OPx != 1:
-            if OPy==int(self.env_height/4): return performance[0,:,actionOP]
-            elif OPy==int(self.env_height/2): return performance[1,:,actionOP]
-            elif OPy==int(self.env_height/4*3): return performance[2,:,actionOP]
+        # if OPx != 0 or OPx != 1:
+        #     if OPy==int(self.env_height/4): return performance[0,:,actionOP]
+        #     elif OPy==int(self.env_height/2): return performance[1,:,actionOP]
+        #     elif OPy==int(self.env_height/4*3): return performance[2,:,actionOP]
+        if OPx != self.env_width:
+            if OPy==0: return performance[0,:,actionOP]
+            elif OPy==1: return performance[1,:,actionOP]
+            elif OPy==2: return performance[2,:,actionOP]
+            elif OPy==3: return performance[3,:,actionOP]
+            elif OPy==4: return performance[4,:,actionOP]
         return np.ones(5)/5
     
     def rotate(self, l, n):

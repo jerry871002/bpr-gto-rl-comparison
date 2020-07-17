@@ -28,15 +28,22 @@ class BPR:
         self.env_height = env_height
         self.attacking = True
         self.back_to_origin = True
+        self.lr_prior = 0.05
         
                 
     def update_belief(self, state, actionOP, OP_prob_random=0.05):
         MEx, MEy, OPx, OPy, possession = state
         prob_distribution = [1-OP_prob_random] + [OP_prob_random/19*i for i in [4, 3, 2, 1, 2, 3, 4]]
+        # print('distribution = ' + str(prob_distribution))
+        # print('rotated distribution = ' + str(self.rotate(prob_distribution, 2)))
         if possession == 0: #left ball possession
             #likelihood is the prob distribution of OP type 0,1,2
             likelihood_attack = self.performance_model_attack(MEx, MEy, OPx, OPy, actionOP, prob_distribution)
-            self.belief_attack = self.belief_attack*likelihood_attack/np.sum(self.belief_attack*likelihood_attack)
+            
+            self.belief_attack = self.belief_attack*(1-self.lr_prior) + \
+                (self.belief_attack*likelihood_attack/np.sum(self.belief_attack*likelihood_attack))*self.lr_prior
+            # self.belief_attack = self.belief_attack*likelihood_attack/np.sum(self.belief_attack*likelihood_attack)
+            
             self.belief_attack = self.belief_attack**0.9/np.sum(self.belief_attack**0.9)
             # for i in range(len(self.belief_attack)):
             #     if self.belief_attack[i] < 1e-5:
@@ -45,7 +52,11 @@ class BPR:
         if possession == 1: #right ball possession
             #likelihood is the prob distribution of OP type 0,1,2,3,4
             likelihood_defense = self.performance_model_defense(MEx, MEy, OPx, OPy, actionOP, prob_distribution)
-            self.belief_defense = self.belief_defense*likelihood_defense/np.sum(self.belief_defense*likelihood_defense)
+            
+            self.belief_defense = self.belief_defense*(1-self.lr_prior) + \
+                (self.belief_defense*likelihood_defense/np.sum(self.belief_defense*likelihood_defense))*self.lr_prior
+            # self.belief_defense = self.belief_defense*likelihood_defense/np.sum(self.belief_defense*likelihood_defense)
+            
             self.belief_defense = self.belief_defense**0.9/np.sum(self.belief_defense**0.9)
             # for i in range(len(self.belief_defense)):
             #     if self.belief_defense[i] < 1e-10:
@@ -53,54 +64,86 @@ class BPR:
         
     def performance_model_attack(self, MEx, MEy, OPx, OPy, actionOP, prob): #Me attack, OP defense
         l = len(prob)
-        performance = np.zeros((3, 3, l))
+        performance = np.zeros((4, 3, l))
         
-        performance[0, 0, 0:l] = self.rotate(prob, 2)
-        performance[0, 1, 0:l] = self.rotate(prob, 3)
-        performance[0, 2, 0:l] = self.rotate(prob, 4)
+        performance[0, 0, 0:l] = self.rotate(prob, 1)
+        performance[0, 1, 0:l] = self.rotate(prob, 2)
+        performance[0, 2, 0:l] = self.rotate(prob, 3)
         
-        performance[1, 0, 0:l] = self.rotate(prob, 0)
-        performance[1, 1, 0:l] = self.rotate(prob, 2)
+        performance[1, 0, 0:l] = self.rotate(prob, 3)
+        performance[1, 1, 0:l] = self.rotate(prob, 3)
         performance[1, 2, 0:l] = self.rotate(prob, 4)
         
         performance[2, 0, 0:l] = self.rotate(prob, 0)
         performance[2, 1, 0:l] = self.rotate(prob, 1)
-        performance[2, 2, 0:l] = self.rotate(prob, 2)
+        performance[2, 2, 0:l] = self.rotate(prob, 1)
+        
+        performance[3, 0, 0:l] = self.rotate(prob, 0)
+        performance[3, 1, 0:l] = self.rotate(prob, 2)
+        performance[3, 2, 0:l] = self.rotate(prob, 4)
         # print(performance)
-        if OPx - MEx <= 2:
-            if OPy<MEy: return performance[0,:,actionOP]
-            elif OPy==MEy: return performance[1,:,actionOP]
-            elif OPy>MEy: return performance[2,:,actionOP]
+        # if abs(OPx-MEx)+abs(OPy-MEy)<=2 and OPx>=MEx:
+        #     if OPy<MEy: return performance[0,:,actionOP]
+        #     elif OPy==MEy: return performance[1,:,actionOP]
+        #     elif OPy>MEy: return performance[2,:,actionOP]
             # return 0
-        else:
-            return np.ones(3)/3
+        if OPy==MEy and OPx==MEx+2: return performance[0,:,actionOP]
+        elif OPy==MEy-1 and OPx==MEx+1: return performance[1,:,actionOP]
+        elif OPy==MEy+1 and OPx==MEx+1: return performance[2,:,actionOP]
+        elif OPy==MEy and OPx==MEx+1: return performance[3,:,actionOP]
+            
+        
+        return np.ones(3)/3
         
     def performance_model_defense(self, MEx, MEy, OPx, OPy, actionOP, prob): #Me defense, OP attack
         l = len(prob)
-        performance = np.zeros((3, 5, l))
-        
-        performance[0, 0, 0:l] = self.rotate(prob, 0)
-        performance[0, 1, 0:l] = self.rotate(prob, 2)
+        performance = np.zeros((5, 5, l))
+        performance[0, 0, 0:l] = self.rotate(prob, 2)
+        performance[0, 1, 0:l] = self.rotate(prob, 4)
         performance[0, 2, 0:l] = self.rotate(prob, 4)
         performance[0, 3, 0:l] = self.rotate(prob, 4)
         performance[0, 4, 0:l] = self.rotate(prob, 4)
         
         performance[1, 0, 0:l] = self.rotate(prob, 0)
-        performance[1, 1, 0:l] = self.rotate(prob, 0)
-        performance[1, 2, 0:l] = self.rotate(prob, 2)
+        performance[1, 1, 0:l] = self.rotate(prob, 2)
+        performance[1, 2, 0:l] = self.rotate(prob, 4)
         performance[1, 3, 0:l] = self.rotate(prob, 4)
         performance[1, 4, 0:l] = self.rotate(prob, 4)
         
         performance[2, 0, 0:l] = self.rotate(prob, 0)
         performance[2, 1, 0:l] = self.rotate(prob, 0)
-        performance[2, 2, 0:l] = self.rotate(prob, 0)
-        performance[2, 3, 0:l] = self.rotate(prob, 2)
+        performance[2, 2, 0:l] = self.rotate(prob, 2)
+        performance[2, 3, 0:l] = self.rotate(prob, 4)
         performance[2, 4, 0:l] = self.rotate(prob, 4)
+        
+        performance[3, 0, 0:l] = self.rotate(prob, 0)
+        performance[3, 1, 0:l] = self.rotate(prob, 0)
+        performance[3, 2, 0:l] = self.rotate(prob, 0)
+        performance[3, 3, 0:l] = self.rotate(prob, 2)
+        performance[3, 4, 0:l] = self.rotate(prob, 4)
+        
+        performance[4, 0, 0:l] = self.rotate(prob, 0)
+        performance[4, 1, 0:l] = self.rotate(prob, 0)
+        performance[4, 2, 0:l] = self.rotate(prob, 0)
+        performance[4, 3, 0:l] = self.rotate(prob, 0)
+        performance[4, 4, 0:l] = self.rotate(prob, 2)
         # print(performance)
-        if OPx != 0 or OPx != 1:
-            if OPy==int(self.env_height/4): return performance[0,:,actionOP]
-            elif OPy==int(self.env_height/2): return performance[1,:,actionOP]
-            elif OPy==int(self.env_height/4*3): return performance[2,:,actionOP]
+        # if OPx == 0:
+        #     if OPy==int(self.env_height/4): return performance[1,:,actionOP]
+        #     elif OPy==int(self.env_height/2): return performance[2,:,actionOP]
+        #     elif OPy==int(self.env_height/4*3): return performance[3,:,actionOP]
+        # elif OPx != 0 and OPx != self.env_width:
+        #     if OPy==0: return performance[0,:,actionOP]
+        #     elif OPy==1: return performance[1,:,actionOP]
+        #     elif OPy==2: return performance[2,:,actionOP]
+        #     elif OPy==3: return performance[3,:,actionOP]
+        #     elif OPy==4: return performance[4,:,actionOP]
+        if OPx != 0:
+            if OPy==0: return performance[0,:,actionOP]
+            elif OPy==1: return performance[1,:,actionOP]
+            elif OPy==2: return performance[2,:,actionOP]
+            elif OPy==3: return performance[3,:,actionOP]
+            elif OPy==4: return performance[4,:,actionOP]
         return np.ones(5)/5
     
     def rotate(self, l, n):

@@ -94,34 +94,52 @@ class TheoryOfMind:
     
     def op_performance_model_attack(self, rightx, righty, leftx, lefty, actionLeft, prob): #Me defense, OP attack
         l = len(prob)
-        performance = np.zeros((3, 5, l))
+        performance = np.zeros((5, 5, l))
         
-        performance[0, 0, 0:l] = self.rotate(prob, 0)
-        performance[0, 1, 0:l] = self.rotate(prob, -2)
+        performance[0, 0, 0:l] = self.rotate(prob, -2)
+        performance[0, 1, 0:l] = self.rotate(prob, 4)
         performance[0, 2, 0:l] = self.rotate(prob, 4)
         performance[0, 3, 0:l] = self.rotate(prob, 4)
         performance[0, 4, 0:l] = self.rotate(prob, 4)
         
         performance[1, 0, 0:l] = self.rotate(prob, 0)
-        performance[1, 1, 0:l] = self.rotate(prob, 0)
-        performance[1, 2, 0:l] = self.rotate(prob, -2)
+        performance[1, 1, 0:l] = self.rotate(prob, -2)
+        performance[1, 2, 0:l] = self.rotate(prob, 4)
         performance[1, 3, 0:l] = self.rotate(prob, 4)
         performance[1, 4, 0:l] = self.rotate(prob, 4)
         
         performance[2, 0, 0:l] = self.rotate(prob, 0)
         performance[2, 1, 0:l] = self.rotate(prob, 0)
-        performance[2, 2, 0:l] = self.rotate(prob, 0)
-        performance[2, 3, 0:l] = self.rotate(prob, -2)
+        performance[2, 2, 0:l] = self.rotate(prob, -2)
+        performance[2, 3, 0:l] = self.rotate(prob, 4)
         performance[2, 4, 0:l] = self.rotate(prob, 4)
+        
+        performance[3, 0, 0:l] = self.rotate(prob, 0)
+        performance[3, 1, 0:l] = self.rotate(prob, 0)
+        performance[3, 2, 0:l] = self.rotate(prob, 0)
+        performance[3, 3, 0:l] = self.rotate(prob, -2)
+        performance[3, 4, 0:l] = self.rotate(prob, 4)
+        
+        performance[4, 0, 0:l] = self.rotate(prob, 0)
+        performance[4, 1, 0:l] = self.rotate(prob, 0)
+        performance[4, 2, 0:l] = self.rotate(prob, 0)
+        performance[4, 3, 0:l] = self.rotate(prob, 0)
+        performance[4, 4, 0:l] = self.rotate(prob, -2)
         # print(performance)
         # performance = np.negative(performance)
-        if leftx != 0 or leftx != 1:
-            if lefty==int(self.env_height/4): return performance[0,:,actionLeft]
-            elif lefty==int(self.env_height/2): return performance[1,:,actionLeft]
-            elif lefty==int(self.env_height/4*3): return performance[2,:,actionLeft]
+        # if OPx != 0 or OPx != 1:
+        #     if OPy==int(self.env_height/4): return performance[0,:,actionOP]
+        #     elif OPy==int(self.env_height/2): return performance[1,:,actionOP]
+        #     elif OPy==int(self.env_height/4*3): return performance[2,:,actionOP]
+        if leftx != self.env_width:
+            if lefty==0: return performance[0,:,actionLeft]
+            elif lefty==1: return performance[1,:,actionLeft]
+            elif lefty==2: return performance[2,:,actionLeft]
+            elif lefty==3: return performance[3,:,actionLeft]
+            elif lefty==4: return performance[4,:,actionLeft]
         return np.ones(5)/5
     
-    def op_performance_model_defense(self, MEx, MEy, OPx, OPy, actionOP, prob): #Me attack, OP defense
+    def op_performance_model_defense(self, rightx, righty, leftx, lefty, actionLeft, prob): #Me defense, OP attack
         l = len(prob)
         performance = np.zeros((3, 3, l))
         
@@ -138,10 +156,10 @@ class TheoryOfMind:
         performance[2, 2, 0:l] = self.rotate(prob, -2)
         # print(performance)
         # performance = np.negative(performance)
-        if 0 < MEx - OPx <= 2:
-            if OPy<MEy: return performance[0,:,actionOP]
-            elif OPy==MEy: return performance[1,:,actionOP]
-            elif OPy>MEy: return performance[2,:,actionOP]
+        if 0 < rightx - leftx <= 2:
+            if righty<lefty: return performance[0,:,actionLeft]
+            elif righty==lefty: return performance[1,:,actionLeft]
+            elif righty>lefty: return performance[2,:,actionLeft]
             # return 0
         else:
             return np.ones(3)/3
@@ -172,30 +190,47 @@ class TheoryOfMind:
         
     def my_performance_model_defense(self, leftx, lefty, rightx, righty, actionRight, prob): #Me defense, OP attack
         l = len(prob)
-        performance = np.zeros((3, 5, l))
-        
-        performance[0, 0, 0:l] = self.rotate(prob, 0)
-        performance[0, 1, 0:l] = self.rotate(prob, 2)
+        performance = np.zeros((5, 5, l))
+        performance[0, 0, 0:l] = self.rotate(prob, 2)
+        performance[0, 1, 0:l] = self.rotate(prob, 4)
         performance[0, 2, 0:l] = self.rotate(prob, 4)
         performance[0, 3, 0:l] = self.rotate(prob, 4)
         performance[0, 4, 0:l] = self.rotate(prob, 4)
         
         performance[1, 0, 0:l] = self.rotate(prob, 0)
-        performance[1, 1, 0:l] = self.rotate(prob, 0)
-        performance[1, 2, 0:l] = self.rotate(prob, 2)
+        performance[1, 1, 0:l] = self.rotate(prob, 2)
+        performance[1, 2, 0:l] = self.rotate(prob, 4)
         performance[1, 3, 0:l] = self.rotate(prob, 4)
         performance[1, 4, 0:l] = self.rotate(prob, 4)
         
         performance[2, 0, 0:l] = self.rotate(prob, 0)
         performance[2, 1, 0:l] = self.rotate(prob, 0)
-        performance[2, 2, 0:l] = self.rotate(prob, 0)
-        performance[2, 3, 0:l] = self.rotate(prob, 2)
+        performance[2, 2, 0:l] = self.rotate(prob, 2)
+        performance[2, 3, 0:l] = self.rotate(prob, 4)
         performance[2, 4, 0:l] = self.rotate(prob, 4)
+        
+        performance[3, 0, 0:l] = self.rotate(prob, 0)
+        performance[3, 1, 0:l] = self.rotate(prob, 0)
+        performance[3, 2, 0:l] = self.rotate(prob, 0)
+        performance[3, 3, 0:l] = self.rotate(prob, 2)
+        performance[3, 4, 0:l] = self.rotate(prob, 4)
+        
+        performance[4, 0, 0:l] = self.rotate(prob, 0)
+        performance[4, 1, 0:l] = self.rotate(prob, 0)
+        performance[4, 2, 0:l] = self.rotate(prob, 0)
+        performance[4, 3, 0:l] = self.rotate(prob, 0)
+        performance[4, 4, 0:l] = self.rotate(prob, 4)
         # print(performance)
-        if rightx != 0 or rightx != 1:
-            if righty==int(self.env_height/4): return performance[0,:,actionRight]
-            elif righty==int(self.env_height/2): return performance[1,:,actionRight]
-            elif righty==int(self.env_height/4*3): return performance[2,:,actionRight]
+        # if rightx != 0 or rightx != 1:
+        #     if righty==int(self.env_height/4): return performance[0,:,actionRight]
+        #     elif righty==int(self.env_height/2): return performance[1,:,actionRight]
+        #     elif righty==int(self.env_height/4*3): return performance[2,:,actionRight]
+        if rightx != 0:
+            if righty==0: return performance[0,:,actionRight]
+            elif righty==1: return performance[1,:,actionRight]
+            elif righty==2: return performance[2,:,actionRight]
+            elif righty==3: return performance[3,:,actionRight]
+            elif righty==4: return performance[4,:,actionRight]
         return np.ones(5)/5
     
     # if ball possession change -> change policy    

@@ -19,7 +19,7 @@ ME = BPR(env_width=env.width, env_height=env.height, env_goal_size=env.goal_size
 OP = BPR_OP(env_width=env.width, env_height=env.height, env_goal_size=env.goal_size)
 
 # parameters
-EPISODES = 500
+EPISODES = 200
 win = 0
 for i in range(EPISODES):
     state = env.reset()

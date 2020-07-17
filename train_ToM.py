@@ -10,38 +10,46 @@ from agents.common.training_opponent import StationaryOpponent, RandomSwitchOppo
 from agents.BPR.bpr_op import BPR_OP
 from agents.BPR.theory_of_mind import TheoryOfMind
 
+import matplotlib.pyplot as plt
+
 # set environment
 env = SoccerEnv(width=5, height=5, goal_size=3)
 
 # set agents
 ME = TheoryOfMind(env_width=env.width, env_height=env.height, env_goal_size=env.goal_size)
+# OP = RandomSwitchOpponent(env_width=env.width, env_height=env.height, env_goal_size=env.goal_size, episode_reset=50)
+# OP = StationaryOpponent(env_width=env.width, env_height=env.height, env_goal_size=env.goal_size, type_attack=4, type_defense=0)
 OP = BPR_OP(env_width=env.width, env_height=env.height, env_goal_size=env.goal_size)
-
 # parameters
-EPISODES = 50
+EPISODES = 200
 win = 0
 win_rate = 0
 past_win_rate = 0
+# belief_attack_change = []
+belief_defense_change = []
+# op_type = []
 for i in range(EPISODES):
     state = env.reset()
     ball_possession_change = True
     done = False
+    # op_type.append(OP.policy_attack)
     while not done:
         leftx, lefty, rightx, righty, possession = state
         env.show()
         print()
         print(i+1)
-        input('wait')
+        # input('wait')
         
         if ball_possession_change:
             ME.change_policy(leftx, lefty, possession)
-            OP.change_policy(rightx, righty, possession)
+            OP.change_policy(rightx, righty, possession) # function of BPR_OP
 
         # agent 1 decides its action
         actionME = ME.choose_action(state)
 
         # agent 2 decides its action
-        actionOP = OP.choose_action(state)
+        actionOP = OP.choose_action(state) # function of BPR_OP
+        # actionOP = OP.get_action(state)
 
         # perform actions on the environment
         done, reward_l, reward_r, state_, actions = env.step(actionME, actionOP)
@@ -51,7 +59,8 @@ for i in range(EPISODES):
         ME.update_first_order_belief(state, actionOP)
 
         # training process of agent 2
-        OP.update_belief(state, actionME)
+        OP.update_belief(state, actionME) # function of BPR_OP
+        # OP.adjust(done, reward_r, i)
 
         ball_possession_change = not(state[4]==state_[4])
         state = state_
@@ -65,4 +74,8 @@ for i in range(EPISODES):
     ME.update_confidence(win_rate, past_win_rate)
     print(f'current win rate = {win_rate}')
     print(f'confidence = {ME.confidence}')
+    # belief_attack_change.append(ME.zero_belief_attack)
+    belief_defense_change.append(ME.zero_belief_defense)
 print(f'win rate = {win/EPISODES}')
+# plt.plot(belief_defense_change)
+# plt.legend(['type1', 'type2', 'type3', 'type4', 'type5'])
