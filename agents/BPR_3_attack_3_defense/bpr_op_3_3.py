@@ -1,12 +1,4 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Mon May 11 20:15:13 2020
-
-@author: yenyunhuang
-"""
-
-# BPR right agent with 3 attacking policies and 4 defending policies
+"""BPR right agent with 3 attacking policies and 4 defending policies"""
 
 import numpy as np
 import random
@@ -20,53 +12,54 @@ BOTTOM_LEFT = 5
 LEFT = 6
 TOP_LEFT = 7
 
+
 class BPR_OP_3_3:
     def __init__(self, env_width, env_height, env_goal_size):
-        self.belief_attack = np.ones(3)/3
-        self.belief_defense = np.ones(3)/3
+        self.belief_attack = np.ones(3) / 3
+        self.belief_defense = np.ones(3) / 3
         self.policy_attack = random.randint(0, 2)
         self.policy_defense = random.randint(0, 2)
         self.env_width = env_width
         self.env_height = env_height
-        
-                
+
     def update_belief(self, state, actionOP, OP_prob_random=0.05):
         OPx, OPy, MEx, MEy, possession = state
-        prob_distribution = [1-OP_prob_random] + [OP_prob_random/19*i for i in [4, 3, 2, 1, 2, 3, 4]]
-        if possession == 1: #right ball possession
-            #likelihood is the prob distribution of OP type 0,1,2
+        prob_distribution = [1 - OP_prob_random] + [OP_prob_random / 19 * i for i in [4, 3, 2, 1, 2, 3, 4]]
+        if possession == 1:  # right ball possession
+            # likelihood is the prob distribution of OP type 0,1,2
             likelihood_attack = self.performance_model_attack(MEx, MEy, OPx, OPy, actionOP, prob_distribution)
-            self.belief_attack = self.belief_attack*likelihood_attack/np.sum(self.belief_attack*likelihood_attack)
-            self.belief_attack = self.belief_attack**0.9/np.sum(self.belief_attack**0.9)
+            self.belief_attack = self.belief_attack * likelihood_attack / np.sum(self.belief_attack * likelihood_attack)
+            self.belief_attack = self.belief_attack ** 0.9 / np.sum(self.belief_attack ** 0.9)
             for i in range(len(self.belief_attack)):
                 if self.belief_attack[i] < 1e-5:
                     self.belief_attack[i] = 1e-5
-            
-        if possession == 0: #left ball possession
-            #likelihood is the prob distribution of OP type 0,1,2,3,4
+
+        if possession == 0:  # left ball possession
+            # likelihood is the prob distribution of OP type 0,1,2,3,4
             likelihood_defense = self.performance_model_defense(MEx, MEy, OPx, OPy, actionOP, prob_distribution)
-            self.belief_defense = self.belief_defense*likelihood_defense/np.sum(self.belief_defense*likelihood_defense)
-            self.belief_defense = self.belief_defense**0.9/np.sum(self.belief_defense**0.9)
+            self.belief_defense = self.belief_defense * likelihood_defense / np.sum(
+                self.belief_defense * likelihood_defense)
+            self.belief_defense = self.belief_defense ** 0.9 / np.sum(self.belief_defense ** 0.9)
             for i in range(len(self.belief_defense)):
                 if self.belief_defense[i] < 1e-10:
                     self.belief_defense[i] = 1e-10
-        
-#position  0     |  1     |  2     |  3     |  4     |  5    |  6    |
-#       -------------------------------------------------------------
-#        .....  | .....  | .....  | .....  | .....  | ..... | ..... |
-#        .o...  | .....  | .....  | ..o..  | .....  | ..... | ..... |
-#        ...x.  | .o.x.  | ...x.  | ...x.  | ..ox.  | ...x. | ..... |
-#        .....  | .....  | .o...  | .....  | .....  | ..o.. | ..... |
-#        .....  | .....  | .....  | .....  | .....  | ..... | ..... |
-        
-    def performance_model_attack(self, MEx, MEy, OPx, OPy, actionOP, prob): #Me attack, OP defense
+
+    # position  0     |  1     |  2     |  3     |  4     |  5    |  6    |
+    #         -------------------------------------------------------------
+    #          .....  | .....  | .....  | .....  | .....  | ..... | ..... |
+    #          .o...  | .....  | .....  | ..o..  | .....  | ..... | ..... |
+    #          ...x.  | .o.x.  | ...x.  | ...x.  | ..ox.  | ...x. | ..... |
+    #          .....  | .....  | .o...  | .....  | .....  | ..o.. | ..... |
+    #          .....  | .....  | .....  | .....  | .....  | ..... | ..... |
+
+    def performance_model_attack(self, MEx, MEy, OPx, OPy, actionOP, prob):  # Me attack, OP defense
         l = len(prob)
         performance = np.zeros((6, 3, l))
-        #position 0, type 0, 1, 2
+        # position 0, type 0, 1, 2
         performance[0, 0, 0:l] = self.rotate(prob, -2)
         performance[0, 1, 0:l] = self.rotate(prob, -3)
         performance[0, 2, 0:l] = self.rotate(prob, -3)
-        #position 1
+        # position 1
         performance[1, 0, 0:l] = self.rotate(prob, -1)
         performance[1, 1, 0:l] = self.rotate(prob, -2)
         performance[1, 2, 0:l] = self.rotate(prob, -3)
@@ -82,35 +75,35 @@ class BPR_OP_3_3:
         performance[4, 0, 0:l] = self.rotate(prob, -0)
         performance[4, 1, 0:l] = self.rotate(prob, -2)
         performance[4, 2, 0:l] = self.rotate(prob, -4)
-        #position 5
+        # position 5
         performance[5, 0, 0:l] = self.rotate(prob, -0)
         performance[5, 1, 0:l] = self.rotate(prob, -1)
         performance[5, 2, 0:l] = self.rotate(prob, -1)
-        
-        if OPx == MEx-2:
-            if OPy == MEy-1:
-                return performance[0,:,actionOP]
+
+        if OPx == MEx - 2:
+            if OPy == MEy - 1:
+                return performance[0, :, actionOP]
             elif OPy == MEy:
-                return performance[1,:,actionOP]
-            elif OPy == MEy+1:
-                return performance[2,:,actionOP]
-        elif OPx == MEx-1:
-            if OPy == MEy-1:
-                return performance[3,:,actionOP]
+                return performance[1, :, actionOP]
+            elif OPy == MEy + 1:
+                return performance[2, :, actionOP]
+        elif OPx == MEx - 1:
+            if OPy == MEy - 1:
+                return performance[3, :, actionOP]
             elif OPy == MEy:
-                return performance[4,:,actionOP]
-            elif OPy == MEy+1:
-                return performance[5,:,actionOP]      
-        return np.ones(3)/3
-        
-    def performance_model_defense(self, MEx, MEy, OPx, OPy, actionOP, prob): #Me defense, OP attack
+                return performance[4, :, actionOP]
+            elif OPy == MEy + 1:
+                return performance[5, :, actionOP]
+        return np.ones(3) / 3
+
+    def performance_model_defense(self, MEx, MEy, OPx, OPy, actionOP, prob):  # Me defense, OP attack
         l = len(prob)
         performance = np.zeros((6, 3, l))
-        #position 0
+        # position 0
         performance[0, 0, 0:l] = self.rotate(prob, -2)
         performance[0, 1, 0:l] = self.rotate(prob, -3)
         performance[0, 2, 0:l] = self.rotate(prob, -3)
-        #position 1
+        # position 1
         performance[1, 0, 0:l] = self.rotate(prob, -1)
         performance[1, 1, 0:l] = self.rotate(prob, -2)
         performance[1, 2, 0:l] = self.rotate(prob, -3)
@@ -126,33 +119,33 @@ class BPR_OP_3_3:
         performance[4, 0, 0:l] = self.rotate(prob, -1)
         performance[4, 1, 0:l] = self.rotate(prob, -2)
         performance[4, 2, 0:l] = self.rotate(prob, -3)
-        #position 5
+        # position 5
         performance[5, 0, 0:l] = self.rotate(prob, -1)
         performance[5, 1, 0:l] = self.rotate(prob, -1)
         performance[5, 2, 0:l] = self.rotate(prob, -2)
-        
-        if OPx == MEx-2:
-            if OPy == MEy-1:
-                return performance[0,:,actionOP]
+
+        if OPx == MEx - 2:
+            if OPy == MEy - 1:
+                return performance[0, :, actionOP]
             elif OPy == MEy:
-                return performance[1,:,actionOP]
-            elif OPy == MEy+1:
-                return performance[2,:,actionOP]
-        elif OPx == MEx-1:
-            if OPy == MEy-1:
-                return performance[3,:,actionOP]
+                return performance[1, :, actionOP]
+            elif OPy == MEy + 1:
+                return performance[2, :, actionOP]
+        elif OPx == MEx - 1:
+            if OPy == MEy - 1:
+                return performance[3, :, actionOP]
             elif OPy == MEy:
-                return performance[4,:,actionOP]
-            elif OPy == MEy+1:
-                return performance[5,:,actionOP]  
-        return np.ones(3)/3
-    
+                return performance[4, :, actionOP]
+            elif OPy == MEy + 1:
+                return performance[5, :, actionOP]
+        return np.ones(3) / 3
+
     def rotate(self, l, n):
         return l[n:] + l[:n]
-    
+
     # if ball possession change -> change policy    
     def change_policy(self, MEx, MEy, ball_possession):
-        if ball_possession==1: #right possess ball
+        if ball_possession == 1:  # right possess ball
             self.policy_attack = np.argmin(self.belief_attack)
             if MEy == 0 and self.policy_attack == 0:
                 self.policy_attack = 1
@@ -160,39 +153,39 @@ class BPR_OP_3_3:
                 self.policy_attack = 1
             print('agent_r attack belief = ', self.belief_attack)
             print('agent_r attack policy = ', self.policy_attack)
-        elif ball_possession==0: #keft possess ball
+        elif ball_possession == 0:  # keft possess ball
             self.policy_defense = np.argmax(self.belief_defense)
             print('agent_r defense belief = ', self.belief_defense)
             print('agent_r defense policy = ', self.policy_defense)
-    
-    #choose action according to policy
+
+    # choose action according to policy
     def choose_action(self, state):
         OPx, OPy, MEx, MEy, possession = state
-        #attacking
-        if possession == 1: #right posses ball
+        # attacking
+        if possession == 1:  # right posses ball
             # in front of goal
-            if MEx == 0 and MEy == self.env_height-1:
+            if MEx == 0 and MEy == self.env_height - 1:
                 return TOP_LEFT
             if MEx == 0 and MEy == 0:
                 return BOTTOM_LEFT
             # close to opponent, show policy
-            if (abs(MEx - OPx) + abs(MEy - OPy) <= 2 and MEx > OPx):
-                if self.policy_attack == 0: # attack from top
-                    return self.to_target(MEx, MEy, OPx, OPy-1)
-                if self.policy_attack == 1: # attack from middle
+            if abs(MEx - OPx) + abs(MEy - OPy) <= 2 and MEx > OPx:
+                if self.policy_attack == 0:  # attack from top
+                    return self.to_target(MEx, MEy, OPx, OPy - 1)
+                if self.policy_attack == 1:  # attack from middle
                     return self.to_target(MEx, MEy, OPx, OPy)
-                if self.policy_attack == 2: # attack from bottom
-                    return self.to_target(MEx, MEy, OPx, OPy+1)
+                if self.policy_attack == 2:  # attack from bottom
+                    return self.to_target(MEx, MEy, OPx, OPy + 1)
             return LEFT
         # defending
-        else: # left possess ball
+        else:  # left possess ball
             # too far from the opponent
             if abs(MEx - OPx) + abs(MEy - OPy) > 2:
-                return self.to_target(MEx, MEy, OPx+2, OPy)
+                return self.to_target(MEx, MEy, OPx + 2, OPy)
             # close to opponent, show policy
             else:
                 if self.policy_defense == 0:
-                    target = (OPx+1, OPy-1)
+                    target = (OPx + 1, OPy - 1)
                     if (MEx, MEy) != target:
                         return self.to_target(MEx, MEy, *target)
                     else:
@@ -204,13 +197,12 @@ class BPR_OP_3_3:
                     else:
                         return self.to_target(MEx, MEy, OPx, OPy)
                 elif self.policy_defense == 2:
-                    target = (OPx+1, OPy+1)
+                    target = (OPx + 1, OPy + 1)
                     if (MEx, MEy) != target:
                         return self.to_target(MEx, MEy, *target)
                     else:
                         return self.to_target(MEx, MEy, OPx, OPy)
-    
-    
+
     def to_target(self, MEx, MEy, TARGETx, TARGETy):
         if MEx > TARGETx and MEy > TARGETy:
             return TOP_LEFT

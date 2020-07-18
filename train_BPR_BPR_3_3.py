@@ -1,8 +1,3 @@
-import sys
-import random
-import numpy as np
-from keras.utils import to_categorical as one_hot
-
 from env import SoccerEnv
 
 from agents.BPR_3_attack_3_defense.bpr_3_3 import BPR_3_3
@@ -26,12 +21,11 @@ for i in range(EPISODES):
         leftx, lefty, rightx, righty, possession = state
         env.show()
         print()
-        # input('wait')
-        
+
         if ball_possession_change:
             agentME.change_policy(leftx, lefty, possession)
             agentOP.change_policy(rightx, righty, possession)
-            
+
         # agent 1 decides its action
         actionME = agentME.choose_action(state)
 
@@ -41,17 +35,17 @@ for i in range(EPISODES):
         # perform actions on the environment
         done, reward_l, reward_r, state_, actions = env.step(actionME, actionOP)
 
-        if done and reward_l==10:
-            win+=1
+        if done and reward_l == 10:
+            win += 1
 
-        # actions[0]=action of left agent, actions[1]=action of right agent
+        # actions[0]: action of left agent, actions[1]: action of right agent
         # training process of agent 1
         agentME.update_belief(state, actions[1])
 
         # training process of agent 2
         agentOP.update_belief(state, actions[0])
 
-        ball_possession_change = not(state[4]==state_[4])
+        ball_possession_change = not (state[4] == state_[4])
         state = state_
 
-print(f'win rate = {win/EPISODES}')
+print(f'win rate = {win / EPISODES}')

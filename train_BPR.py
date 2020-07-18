@@ -12,11 +12,8 @@ env = SoccerEnv(width=5, height=5, goal_size=3)
 
 # set agents
 ME = BPR(env_width=env.width, env_height=env.height, env_goal_size=env.goal_size)
-OP = RandomSwitchOpponent(env_width=env.width, env_height=env.height,\
+OP = RandomSwitchOpponent(env_width=env.width, env_height=env.height, \
                           env_goal_size=env.goal_size, episode_reset=20)
-# OP = StationaryOpponent(env_width=env.width, env_height=env.height,\
-#                         env_goal_size=env.goal_size, type_attack=4, type_defense=2)
-# OP = RLBasedOpponent(env_width=env.width, env_height=env.height, env_goal_size=env.goal_size)
 
 # parameters
 EPISODES = 100
@@ -33,7 +30,6 @@ for i in range(EPISODES):
     while not done:
         env.show()
         print()
-        # input('wait')
         # agent 1 decides its action
         if ball_possession_change:
             ME.change_policy(state[0], state[1], state[4])
@@ -45,24 +41,22 @@ for i in range(EPISODES):
         done, reward_l, reward_r, state_, actions = env.step(actionME, actionOP)
 
         # training process of agent 1
-        ME.update_belief(state, actions[1]) #update every episode or every step?????
+        ME.update_belief(state, actions[1])  # update every episode or every step?????
 
         # training process of agent 2
         OP.adjust(done, reward_r, i)
-        ball_possession_change = not(state[4]==state_[4])
-        
+        ball_possession_change = not(state[4] == state_[4])
+
         state = state_
         reward += reward_l
-        
+
         if done and reward_l == 10:
-            win+=1
+            win += 1
     belief_attack_change.append(ME.belief_attack)
     belief_defense_change.append(ME.belief_defense)
-print('win rate: ', win/EPISODES)
+print('win rate: ', win / EPISODES)
 
 plt.plot(belief_attack_change)
 plt.legend(['type1', 'type2', 'type3', 'type4', 'type5'], loc='center right')
 plt.xlabel('Episodes')
 plt.ylabel('Belief')
-
-
