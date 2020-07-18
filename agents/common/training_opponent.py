@@ -147,7 +147,7 @@ class StationaryOpponent(TrainingOpponent):
 
 
 class RandomSwitchOpponent(TrainingOpponent):
-    def __init__(self, env_width, env_height, env_goal_size, type_attack=None, type_defense=None, randomness=(0.1, 0.1), episode_reset=6):
+    def __init__(self, env_width, env_height, env_goal_size, type_attack=None, type_defense=None, randomness=(0.1, 0.1), episode_reset=10):
         super().__init__(type_attack, type_defense, env_width, env_height, env_goal_size, randomness)
         self.episode_reset = episode_reset
         print('RandomSwitchOpponent created')
@@ -155,13 +155,12 @@ class RandomSwitchOpponent(TrainingOpponent):
         print(f'initial type_defense: {self.type_defense}')
 
     def adjust(self, done, reward, episode_num):
-        print(f'episode_num: {episode_num}')
         if (episode_num + 1) % self.episode_reset == 0 and done:
             candidate = [type for type in range(5)]
             candidate.remove(self.type_attack)
             self.type_attack = random.choice(candidate)
             print(f'OP type_attack switch to {self.type_attack}')
-            
+
             candidate = [type for type in range(3)]
             candidate.remove(self.type_defense)
             self.type_defense = random.choice(candidate)
@@ -181,7 +180,7 @@ class RLBasedOpponent(TrainingOpponent):
             candidate.remove(self.type_attack)
             self.type_attack = random.choice(candidate)
             print(f'OP type_attack switch to {self.type_attack}')
-            
+
             candidate = [type for type in range(3)]
             candidate.remove(self.type_defense)
             self.type_defense = random.choice(candidate)

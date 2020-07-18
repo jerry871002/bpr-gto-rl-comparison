@@ -5,15 +5,12 @@ import keras.backend as K
 from keras.initializers import RandomUniform
 from keras.models import Model
 from keras.optimizers import Adam
-from keras.layers import Input, Dense, Reshape, GaussianNoise, Flatten
+from keras.layers import Input, Dense, Reshape, GaussianNoise, Flatten, Lambda, concatenate
 
 """ Modified from code by @germain-hug: https://github.com/germain-hug/Deep-RL-Keras/blob/master/DDPG/actor.py
 """
 
 class Actor:
-    """ Actor Network for the DDPG Algorithm
-    """
-
     def __init__(self, inp_dim, out_dim, lr, tau):
         self.env_dim = inp_dim
         self.act_dim = out_dim
@@ -28,14 +25,23 @@ class Actor:
         self.target_model.compile(Adam(lr), loss=self.actor_loss)
         self.training_model.compile(Adam(lr), loss=self.actor_loss)
 
-        # self.adam_optimizer = self.optimizer()
-
     def network(self):
         """ Actor network to predict probability of each action
         """
         input = Input((self.env_dim,))
         delta = Input((1,))
-        x = Dense(128, activation='relu')(input)
+
+        # slice input layer
+        pos_me = Lambda(lambda x: x[:, 0:2])(input)
+        pos_op = Lambda(lambda x: x[:, 2:4])(input)
+        ball = Lambda(lambda x: x[:, 4:])(input)
+
+        # get features from each input
+        pos_me = Dense(32, activation='relu')(pos_me)
+        pos_op = Dense(32, activation='relu')(pos_op)
+        ball = Dense(32, activation='relu')(ball)
+
+        x = concatenate([pos_me, pos_op, ball])
         x = Dense(64, activation='relu')(x)
         output = Dense(self.act_dim, activation='softmax', kernel_initializer=RandomUniform())(x)
 
@@ -65,23 +71,6 @@ class Actor:
             target_W[i] = self.tau * W[i] + (1 - self.tau)* target_W[i]
         self.target_model.set_weights(target_W)
 
-    # def train(self, states, actions, grads):
-    #     """ Actor Training
-    #     """
-    #     self.adam_optimizer([states, grads])
-    #
-    # def optimizer(self):
-    #     """ Actor Optimizer
-    #     """
-    #     action_gdts = K.placeholder(shape=(None, self.act_dim))
-    #     params_grad = tf.gradients(self.model.output, self.model.trainable_weights, -action_gdts)
-    #     grads = zip(params_grad, self.model.trainable_weights)
-    #
-    #     return K.function(
-    #         inputs=[self.model.input, action_gdts],
-    #         outputs=[K.constant(1)],
-    #         updates=[tf.train.AdamOptimizer(self.lr).apply_gradients(grads)][1:]
-    #     )
     def train(self, states, actions, q_values, critic_target):
         td_error = critic_target - q_values
         self.training_model.train_on_batch([states, td_error], actions)
