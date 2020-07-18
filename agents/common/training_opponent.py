@@ -1,5 +1,6 @@
 import math
 import random
+import numpy as np
 
 TOP = 0
 TOP_RIGHT = 1
@@ -111,7 +112,6 @@ class TrainingOpponent:
     def move_to_location(self, x, y, x_target, y_target):
         if (x, y) == (x_target, y_target):
             raise ValueError(f'invalid move: ({x}, {y}) to target ({x_target}, {y_target})')
-
         return self.direction(x, y, x_target, y_target)
 
     def direction(self, x_dep, y_dep, x_dst, y_dst):
@@ -147,7 +147,7 @@ class StationaryOpponent(TrainingOpponent):
 
 
 class RandomSwitchOpponent(TrainingOpponent):
-    def __init__(self, env_width, env_height, env_goal_size, type_attack=None, type_defense=None, randomness=(0.1, 0.1), episode_reset=5):
+    def __init__(self, env_width, env_height, env_goal_size, type_attack=None, type_defense=None, randomness=(0.1, 0.1), episode_reset=10):
         super().__init__(type_attack, type_defense, env_width, env_height, env_goal_size, randomness)
         self.episode_reset = episode_reset
         print('RandomSwitchOpponent created')
