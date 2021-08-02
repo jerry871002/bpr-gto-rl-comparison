@@ -1,7 +1,7 @@
 # Comparing Exploitation-Based and Game Theory Optimal Based Approaches in a Multi-Agent Environment
 
 In this project we compared two algorithms, 
-- **BPR**: exploitative style, a way of playing toidentify and exploit imbalances in the strategies of your opponents.
+- **BPR**: exploitative style, a way of playing to identify and exploit imbalances in the strategies of your opponents.
 - **MADDPG/M3DDPG**: game theory optimal (GTO) style, a way of playing a game that makes you 
 unexploitable to your opponents.
 
